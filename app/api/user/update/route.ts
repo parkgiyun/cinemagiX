@@ -4,7 +4,7 @@ import axios from "axios"
 export async function POST(request: Request) {
   try {
     const body = await request.json()
-    const { field, value, currentPassword, email } = body
+    const { field, value, currentPassword, email, user_id } = body
 
     console.log("사용자 정보 업데이트 요청:", {
       field,
@@ -22,10 +22,6 @@ export async function POST(request: Request) {
 
     const token = authHeader.split(" ")[1]
 
-    if (!email) {
-      return NextResponse.json({ success: false, message: "이메일 정보가 필요합니다." }, { status: 400 })
-    }
-
     if (!currentPassword) {
       return NextResponse.json({ success: false, message: "비밀번호가 필요합니다." }, { status: 400 })
     }
@@ -38,9 +34,9 @@ export async function POST(request: Request) {
     // 스프링부트 API 요청 데이터 구성
     // 새로운 API 엔드포인트 형식에 맞게 데이터 구성
     const requestData = {
-      email: email,
+      user_id: user_id,
       password: currentPassword,
-      after: value
+      after: value,
     }
 
     // 필드에 따라 다른 API 엔드포인트 사용
@@ -57,7 +53,7 @@ export async function POST(request: Request) {
 
     console.log("스프링부트 API 요청 데이터:", {
       endpoint: apiEndpoint,
-      email: requestData.email,
+      user_id: requestData.user_id,
       hasPassword: !!requestData.password,
       afterLength: requestData.after ? requestData.after.length : 0,
     })
@@ -84,7 +80,8 @@ export async function POST(request: Request) {
         code: "ERROR",
         message: error.response?.data?.message || "현재 비밀번호가 일치하지 않습니다.",
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }
+

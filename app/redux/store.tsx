@@ -1,10 +1,11 @@
-import { configureStore } from "@reduxjs/toolkit";
+import { configureStore } from "@reduxjs/toolkit"
 import {
   movieListSlicesReducer,
   regionListSlicesReducer,
   theaterListSlicesReducer,
   movieRunningDetailReducer,
-} from "./redux"; // ✅ 정확한 경로 확인!
+  selectedMovieForReservationReducer,
+} from "./redux" // ✅ 정확한 경로 확인!
 
 const store = configureStore({
   reducer: {
@@ -12,10 +13,12 @@ const store = configureStore({
     regionList: regionListSlicesReducer,
     theaterList: theaterListSlicesReducer,
     movieRunningDetail: movieRunningDetailReducer,
+    selectedMovieForReservation: selectedMovieForReservationReducer,
   },
-});
+})
 
-export type RootState = ReturnType<typeof store.getState>;
-export type AppDispatch = typeof store.dispatch;
+export type RootState = ReturnType<typeof store.getState>
+export type AppDispatch = typeof store.dispatch
 
-export default store;
+export default store
+

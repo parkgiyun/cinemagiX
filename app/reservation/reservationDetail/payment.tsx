@@ -1,12 +1,12 @@
 import { useEffect } from "react";
 
 interface PaymentProps {
-  setBookingState: React.Dispatch<React.SetStateAction<boolean>>;
+  setMemoBookingState: (id: boolean) => void;
 }
 
-const Payment: React.FC<PaymentProps> = ({ setBookingState }) => {
+const Payment: React.FC<PaymentProps> = ({ setMemoBookingState }) => {
   useEffect(() => {
-    setBookingState(true);
+    setMemoBookingState(true);
   }, []);
   return (
     <>

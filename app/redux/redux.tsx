@@ -108,11 +108,29 @@ const movieRunningDetailSlices = createSlice({
   },
 })
 
+// 새로운 슬라이스 추가: 예매를 위해 선택된 영화 ID를 저장
+const selectedMovieForReservationSlice = createSlice({
+  name: "selectedMovieForReservation",
+  initialState: { movieId: -1 },
+  reducers: {
+    setSelectedMovieForReservation: (state, action: PayloadAction<number>) => {
+      state.movieId = action.payload
+      console.log("예매를 위해 선택된 영화 ID:", action.payload)
+    },
+    clearSelectedMovieForReservation: (state) => {
+      state.movieId = -1
+    },
+  },
+})
+
 export const { setMovieList, selectMovie } = movieListSlices.actions
 export const { setMovieRunningDetail } = movieRunningDetailSlices.actions
+export const { setSelectedMovieForReservation, clearSelectedMovieForReservation } =
+  selectedMovieForReservationSlice.actions
 
 export const movieListSlicesReducer = movieListSlices.reducer
 export const regionListSlicesReducer = regionListSlices.reducer
 export const theaterListSlicesReducer = theaterListSlices.reducer
 export const movieRunningDetailReducer = movieRunningDetailSlices.reducer
+export const selectedMovieForReservationReducer = selectedMovieForReservationSlice.reducer
 

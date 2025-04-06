@@ -117,19 +117,19 @@ export const updateUserProfile = async (
       hasNewPassword: field === "password" ? !!value : "N/A",
     })
 
-    // API 요청 데이터 구성
+    // API 요청 데이터 구성 - 새로운 형식으로 변경
     const requestData = {
+      user_id: userData.user_id,
       field,
       value,
-      email: userData.email,
       currentPassword,
     }
 
     console.log("API 요청 데이터:", {
       field: requestData.field,
       valueLength: requestData.value ? requestData.value.length : 0,
-      email: requestData.email,
       hasPassword: !!requestData.currentPassword,
+      user_id: requestData.user_id,
     })
 
     const response = await axios.post("/api/user/update", requestData, {
@@ -245,8 +245,7 @@ export const sendVerificationCode = async (email: string): Promise<{ success: bo
       response.data === "SUCCESS" ||
       response.data.code === "SUCCESS" ||
       response.data.status === "success" ||
-      response.data.message === "인증 코드가 전송되었습니다." ||
-      response.status === 200 // HTTP 상태 코드로도 확인
+      response.data.message === "인증 코드가 전송되었습니다."
     ) {
       return {
         success: true,
@@ -285,13 +284,12 @@ export const verifyEmailCode = async (email: string, code: string): Promise<{ su
     console.log("인증 코드 확인 응답:", response.data)
 
     // 응답 형식에 따라 성공 여부 판단 로직 수정
-    // 백엔드 응답이 문자열 "SUCCESS"인 경우도 처리
+    // 백엔드 응답이 문자열 "SUCCESS"인 경우 처리
     if (
       response.data === "SUCCESS" ||
       response.data === true ||
       response.data.code === "SUCCESS" ||
-      response.data.status === "success" ||
-      response.status === 200 // HTTP 상태 코드로도 확인
+      response.data.status === "success"
     ) {
       return {
         success: true,

@@ -1,66 +1,70 @@
-"use client";
-import { Disclosure } from "@headlessui/react";
-import { TypingText } from "@/src/components/common/Animation/typingAni";
+"use client"
 // { activeStep, setActiveStep }
+// 이 컴포넌트에서 props 타입을 확인하고 필요하면 수정합니다.
+// 현재 타입 정의:
+// interface ReservationStateProps {
+//   activeStep: number
+//   setActiveStep: React.Dispatch<React.SetStateAction<number>>
+// }
+
+// 다음과 같이 변경:
 interface ReservationStateProps {
-  activeStep: number;
-  setActiveStep: React.Dispatch<React.SetStateAction<number>>;
+  activeStep: number
+  setActiveStep: (id: number) => void
 }
 
 const ReservationNav = ({ activeStep, setActiveStep }: ReservationStateProps) => {
-  const steps = ["Movie", "Cinema", "Seats", "Payment"];
+  const steps = ["영화 선택", "극장 및 시간", "좌석 선택", "결제"]
 
   function classNames(...classes: (string | boolean | undefined)[]): string {
-    return classes.filter(Boolean).join(" ");
+    return classes.filter(Boolean).join(" ")
   }
 
   const back = (i: number) => {
-    setActiveStep(i);
-  };
+    setActiveStep(i)
+  }
 
   return (
-    <Disclosure as="nav" className="bg-white drop-shadow-[0_-6px_10px_rgba(0,0,0,0.1)] py-1">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="flex h-16 items-center justify-between">
-          {/* <div className="shrink-0">
-            <img
-              alt="Your Company"
-              src="https://tailwindcss.com/plus-assets/img/logos/mark.svg?color=indigo&shade=500"
-              className="size-8"
-            />
-          </div> */}
-          <div
-            className="flex items-center"
-            style={{ justifyContent: "space-between", margin: "auto" }}
-          >
-            <div className="hidden md:block">
-              <div className="ml-10 flex items-baseline space-x-10">
-                {steps.map((item, i) => (
-                  <div key={item} className="relative flex">
-                    <span
-                      key={item}
-                      aria-current={activeStep === i ? "page" : undefined}
-                      className={classNames(
-                        activeStep === i
-                          ? "drop-shadow-[0_4px_6px_rgba(0,0,0,0.1)] text-gray-900 scale-110 transition-all"
-                          : "rounded-md text-gray-700 bg-white-500 hover:bg-gray-300",
-                        "px-4 py-3 font-medium m-1",
-                        "w-[100px] min-w-[100px] flex justify-center items-center"
-                      )}
-                      onClick={() => back(i)}
-                    >
-                      {/* // 클릭 시 해당 step 활성화 */}
-                      <TypingText text={item} className=""></TypingText>
-                    </span>
-                  </div>
-                ))}
+    <div className="bg-white rounded-lg shadow-md p-4">
+      <div className="flex justify-between items-center">
+        <div className="flex items-center space-x-2">
+          {steps.map((item, i) => (
+            <div key={item} className="flex items-center">
+              {i > 0 && <div className="h-px w-4 bg-gray-300"></div>}
+              <button
+                onClick={() => back(i)}
+                disabled={i > activeStep}
+                className={classNames(
+                  "flex items-center justify-center rounded-full w-10 h-10 text-sm font-medium transition-all",
+                  activeStep === i
+                    ? "bg-primary text-white"
+                    : i < activeStep
+                      ? "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                      : "bg-gray-100 text-gray-400 cursor-not-allowed",
+                )}
+              >
+                {i + 1}
+              </button>
+              <div className="ml-2 text-sm font-medium">
+                <span
+                  className={classNames(
+                    activeStep === i
+                      ? "text-primary font-semibold"
+                      : i < activeStep
+                        ? "text-gray-700"
+                        : "text-gray-400",
+                  )}
+                >
+                  {item}
+                </span>
               </div>
             </div>
-          </div>
+          ))}
         </div>
       </div>
-    </Disclosure>
-  );
-};
+    </div>
+  )
+}
 
-export default ReservationNav;
+export default ReservationNav
+

@@ -1,6 +1,15 @@
+"use client"
+
 import { useDispatch, useSelector } from "react-redux"
 import type { RootState } from "./store"
-import { setMovieList, setMovieRunningDetail } from "./redux"
+import {
+  setMovieList,
+  setMovieRunningDetail,
+  setSelectedMovieForReservation,
+  clearSelectedMovieForReservation,
+} from "./redux"
+import { shallowEqual } from "react-redux"
+import { useCallback } from "react"
 
 type Movie = {
   id: number
@@ -15,40 +24,20 @@ type Movie = {
   runtime: number
 }
 
-// 영화 목록을 가져오는 함수
-export const fetchMovies = async (): Promise<Movie[]> => {
-  try {
-    const response = await fetch("/api/movies/daliy")
-    if (!response.ok) {
-      throw new Error("영화 데이터를 가져오는데 실패했습니다.")
-    }
-    const data = await response.json()
-    return data
-  } catch (error) {
-    console.error("영화 데이터 가져오기 오류:", error)
-    throw error
-  }
-}
-
-// useReduxBoxoffice 훅에 selectedMovie 관련 기능 추가
 export const useReduxBoxoffice = () => {
   const dispatch = useDispatch()
   const movieList = useSelector((state: RootState) => state.movieList.movies)
-  const selectedMovie = useSelector((state: RootState) => state.movieList.selectedMovie)
-
   const updateMovieList = (newMovieList: Movie[]) => {
+    if (shallowEqual(newMovieList, movieList)) return
     dispatch(setMovieList(newMovieList))
   }
-
   const findMovie = (kobisMovieCd: string) => {
     return movieList.find((m) => Number(m.kobisMovieCd) == Number(kobisMovieCd))
   }
-
   const findMovie_id = (id: number) => {
     return movieList.find((m) => m.id == id)
   }
-
-  return { movieList, selectedMovie, updateMovieList, findMovie, findMovie_id }
+  return { movieList, updateMovieList, findMovie, findMovie_id }
 }
 
 export const useRegion = () => {
@@ -94,5 +83,24 @@ export const useMovieRunningDetail = () => {
     return movieRunningDetail.screeningIds.findIndex((ids) => ids === screen_id)
   }
   return { movieRunningDetail, updateMovieRunningDetail, findStartTime }
+}
+
+// 예매를 위해 선택된 영화 ID를 관리하는 훅 추가
+export const useSelectedMovieForReservation = () => {
+  const dispatch = useDispatch()
+  const selectedMovieId = useSelector((state: RootState) => state.selectedMovieForReservation.movieId)
+
+  const setSelectedMovie = useCallback(
+    (movieId: number) => {
+      dispatch(setSelectedMovieForReservation(movieId))
+    },
+    [dispatch],
+  )
+
+  const clearSelectedMovie = useCallback(() => {
+    dispatch(clearSelectedMovieForReservation())
+  }, [dispatch])
+
+  return { selectedMovieId, setSelectedMovie, clearSelectedMovie }
 }
 

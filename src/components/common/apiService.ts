@@ -26,7 +26,7 @@ export const apiService = async (url: string, data: object) => {
 
     if (axios.isAxiosError(err)) {
       throw new Error(
-        err.response?.data?.message || "서버에 연결할 수 없습니다. Spring Boot 서버가 실행 중인지 확인하세요.",
+        err.response?.data?.message || "서버에 연결할 수 없습니다. Spring Boot 서버가 실행 중인지 확인하세요.", // 에러 메시지 구체적으로?
       )
     } else if (err instanceof Error) {
       throw new Error(err.message)

@@ -7,6 +7,8 @@ import { logout } from "../dashboard/dashboardFeatures"
 import { LogOut, Loader2 } from "lucide-react"
 import { fetchBoxofficeGet } from "../common/apiService"
 import type { Movie } from "../common/typeReserve"
+// 필요한 import 추가
+import { useSelectedMovieForReservation } from "@/app/redux/reduxService"
 
 export const HomeContent = () => {
   const router = useRouter()
@@ -19,6 +21,8 @@ export const HomeContent = () => {
   const [error, setError] = useState("")
   // 정렬 상태
   const [sortBy, setSortBy] = useState<"latest" | "popular">("latest")
+  // Redux에서 선택된 영화 ID 관리 훅 사용
+  const { setSelectedMovie } = useSelectedMovieForReservation()
 
   useEffect(() => {
     // API에서 영화 데이터 가져오기
@@ -32,7 +36,7 @@ export const HomeContent = () => {
           // 영화 목록 불러오기
           data = await fetchBoxofficeGet()
         } catch (error1) {
-          console.error("첫 번째 방법 실패:", error1)
+          console.error("영화 불러오기 실패:", error1)
         }
 
         console.log("API 응답 데이터:", data)
@@ -183,7 +187,7 @@ export const HomeContent = () => {
     router.refresh() // 페이지 새로고침
   }
 
-  // 예매 처리
+  // 예매 처리 함수 수정
   const handleBooking = (movieId: number) => {
     if (!isLoggedIn) {
       alert("로그인 후 이용 가능합니다.")
@@ -191,18 +195,22 @@ export const HomeContent = () => {
       return
     }
 
-    // booking/[movieId] 페이지로 이동하여 영화 정보를 먼저 로드
-    router.push(`/booking/${movieId}`)
+    // Redux에 선택한 영화 ID 저장
+    setSelectedMovie(movieId)
+    console.log("예매할 영화 ID를 Redux에 저장:", movieId)
+
+    // 예매 페이지로 이동
+    router.push(`/reservation`)
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col w-full">
       {/* Header */}
-      <header className="site-header">
+      <header className="site-header border-none">
         <div className="site-container flex justify-between items-center">
           {/* 왜인지 로그인, 회원가입 페이지와 마진이 다름; 16px 넣으면 맞음 */}
           <div className="site-name" style={{ marginTop: "16px" }}>
-            Hansung Movie Site
+            CinemagiX
           </div>
           <nav className="flex" style={{ marginTop: "16px" }}>
             {isLoggedIn ? (
@@ -287,29 +295,38 @@ export const HomeContent = () => {
               <div className="movie-grid">
                 {movies.map((movie) => (
                   <div key={movie.id} className="movie-card w-full overflow-hidden">
-                    <div className="bg-gray-200 h-64 rounded-md mb-3">
-                      <img
-                        src={
-                          movie.posterImage ||
-                          `/placeholder.svg?height=256&width=200&text=${encodeURIComponent(movie.title) || "/placeholder.svg"}`
-                        }
-                        alt={movie.title}
-                        className="h-full w-full object-cover rounded-md"
-                        onError={(e) => {
-                          // 이미지 로드 실패 시 플레이스홀더로 대체
-                          ;(e.target as HTMLImageElement).src =
-                            `/placeholder.svg?height=256&width=200&text=${encodeURIComponent(movie.title)}`
-                        }}
-                      />
+                    <div className="bg-gray-200 h-64 rounded-md mb-3 relative group">
+                      <Link href={`/movie/${movie.id}`}>
+                        <img
+                          src={
+                            movie.posterImage ||
+                            `/placeholder.svg?height=256&width=200&text=${encodeURIComponent(movie.title) || "/placeholder.svg"}`
+                          }
+                          alt={movie.title}
+                          className="h-full w-full object-cover rounded-md transition-opacity group-hover:opacity-75"
+                          onError={(e) => {
+                            // 이미지 로드 실패 시 플레이스홀더로 대체
+                            ;(e.target as HTMLImageElement).src =
+                              `/placeholder.svg?height=256&width=200&text=${encodeURIComponent(movie.title)}`
+                          }}
+                        />
+                        <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 flex items-center justify-center transition-all duration-300">
+                          <div className="text-white px-3 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity">
+                            상세보기
+                          </div>
+                        </div>
+                      </Link>
                     </div>
                     <div className="flex justify-between items-start gap-2 h-20 overflow-hidden">
                       <div className="flex-1 min-w-0 overflow-hidden">
-                        <h3
-                          className="font-medium text-base whitespace-nowrap overflow-hidden text-ellipsis"
-                          title={movie.title}
-                        >
-                          {movie.title}
-                        </h3>
+                        <Link href={`/movie/${movie.id}`}>
+                          <h3
+                            className="font-medium text-base whitespace-nowrap overflow-hidden text-ellipsis hover:text-primary transition-colors"
+                            title={movie.title}
+                          >
+                            {movie.title}
+                          </h3>
+                        </Link>
                         <p
                           className="text-xs text-gray-500 whitespace-nowrap overflow-hidden text-ellipsis"
                           title={`감독: ${movie.director || "정보 없음"}`}

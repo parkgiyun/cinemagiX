@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { useState, useEffect } from "react";
+import { useState, useEffect, memo } from "react";
 import {
   useRegion,
   useTheather,
@@ -10,8 +10,8 @@ import {
 } from "@/app/redux/reduxService";
 
 interface BookingInfoProps {
-  setActiveStep: React.Dispatch<React.SetStateAction<number>>;
-  setBookingState: (value: boolean) => void;
+  setMemoActiveStep: (id: number) => void;
+  setMemoBookingState: (value: boolean) => void;
   movie: number;
   cinema: { region: number; theather: number };
   screen: number;
@@ -20,8 +20,8 @@ interface BookingInfoProps {
 }
 
 const BookingInfo: React.FC<BookingInfoProps> = ({
-  setActiveStep,
-  setBookingState,
+  setMemoActiveStep,
+  setMemoBookingState,
   movie,
   cinema,
   screen,
@@ -85,7 +85,7 @@ const BookingInfo: React.FC<BookingInfoProps> = ({
     };
   }, []);
   const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (e.target === e.currentTarget) setBookingState(false);
+    if (e.target === e.currentTarget) setMemoBookingState(false);
   };
 
   return (
@@ -106,7 +106,7 @@ const BookingInfo: React.FC<BookingInfoProps> = ({
             <button
               title="1"
               className="text-gray-500 hover:text-gray-700"
-              onClick={() => setBookingState(false)}
+              onClick={() => setMemoBookingState(false)}
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -205,15 +205,15 @@ const BookingInfo: React.FC<BookingInfoProps> = ({
             className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-100 transition-colors mr-2"
             onClick={() => {
               updateMovieRunningDetail(undefined);
-              setActiveStep(-1);
-              setBookingState(false);
+              setMemoActiveStep(-1);
+              setMemoBookingState(false);
             }}
           >
             초기화
           </button>
           <button
             className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-100 transition-colors mr-2"
-            onClick={() => setBookingState(false)}
+            onClick={() => setMemoBookingState(false)}
           >
             취소
           </button>
@@ -238,5 +238,6 @@ const BookingInfo: React.FC<BookingInfoProps> = ({
     </div>
   );
 };
-
-export default BookingInfo;
+const MemoizedBookingInfo = memo(BookingInfo);
+MemoizedBookingInfo.displayName = "BookingInfo";
+export default MemoizedBookingInfo;

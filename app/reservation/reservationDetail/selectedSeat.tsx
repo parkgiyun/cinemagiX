@@ -2,7 +2,7 @@
 
 import type React from "react";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, memo } from "react";
 import { fetchSeat } from "@/src/components/common/apiService";
 // import { Clock, Film, Ticket } from "lucide-react";
 import { Ticket } from "lucide-react";
@@ -19,11 +19,11 @@ interface SeatData {
 
 interface SelectedSeatProps {
   screen: number;
-  setSeats: React.Dispatch<React.SetStateAction<number[]>>;
-  setActiveStep: React.Dispatch<React.SetStateAction<number>>;
+  setMemoSeats: (id: number[]) => void;
+  setMemoActiveStep: (id: number) => void;
 }
 
-const SelectedSeat: React.FC<SelectedSeatProps> = ({ setActiveStep, setSeats, screen }) => {
+const SelectedSeat: React.FC<SelectedSeatProps> = ({ setMemoActiveStep, setMemoSeats, screen }) => {
   const fetchSeatData = async () => {
     const seatData = await fetchSeat(screen);
     return seatData;
@@ -58,8 +58,8 @@ const SelectedSeat: React.FC<SelectedSeatProps> = ({ setActiveStep, setSeats, sc
       console.log("선택된 좌석:", selectedSeats);
       // 실제 구현에서는 다음 단계로 진행하는 로직 추가
     }
-    setSeats(seat_ids);
-    setActiveStep(3);
+    setMemoSeats(seat_ids);
+    setMemoActiveStep(3);
   };
   const handleReSeat = () => {
     setSelectedSeats([]);
@@ -166,8 +166,9 @@ const SelectedSeat: React.FC<SelectedSeatProps> = ({ setActiveStep, setSeats, sc
     </div>
   );
 };
-
-export default SelectedSeat;
+const MemoizedSelectedSeat = memo(SelectedSeat);
+MemoizedSelectedSeat.displayName = "SelectedSeat";
+export default MemoizedSelectedSeat;
 
 interface ViewSeatProps {
   seatData: SeatData[];
