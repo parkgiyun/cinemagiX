@@ -9,6 +9,7 @@ import Link from "next/link"
 import { getMovie, getCast, getVideos, makeImagePath } from "@/src/components/common/movieService"
 import { logout } from "@/src/components/dashboard/dashboardFeatures"
 import styles from "./styles.module.css"
+import { useSelectedMovieForReservation } from "@/app/redux/reduxService"
 
 export default function MovieDetailPage() {
   const params = useParams()
@@ -22,6 +23,8 @@ export default function MovieDetailPage() {
   const [error, setError] = useState("")
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [username, setUsername] = useState("")
+  // Redux에서 선택된 영화 ID 관리 훅 사용
+  const { setSelectedMovie } = useSelectedMovieForReservation()
 
   // Review state
   const [userRating, setUserRating] = useState(0)
@@ -154,13 +157,21 @@ export default function MovieDetailPage() {
     alert("리뷰가 등록되었습니다.")
   }
 
-  const handleBooking = () => {
+  const handleBooking = (movieId: number) => {
     if (!isLoggedIn) {
-      alert("예매하려면 로그인이 필요합니다.")
+      alert("로그인 후 이용 가능합니다.")
       router.push("/login")
       return
     }
 
+    // Redux에 선택한 영화 ID 저장 (기존 코드 유지)
+    setSelectedMovie(movieId)
+
+    // 로컬 스토리지에도 영화 ID 저장 (새로 추가)
+    localStorage.setItem("selectedMovieId", movieId.toString())
+    console.log("예매할 영화 ID를 로컬 스토리지에 저장:", movieId)
+
+    // 예매 페이지로 이동
     router.push(`/reservation`)
   }
 
@@ -210,7 +221,7 @@ export default function MovieDetailPage() {
       <header className="site-header">
         {/* 왜인지 로그인, 회원가입 페이지와 마진이 다름; 16px 넣으면 맞음 */}
         <div className="site-container flex justify-between items-center" style={{ marginTop: "16px" }}>
-          <Link href="/" className="site-name">
+          <Link href="/" className="site-name font-bold">
             CinemagiX
           </Link>
           <nav className="flex">
@@ -276,7 +287,7 @@ export default function MovieDetailPage() {
 
               <div className="flex flex-wrap gap-2 mt-4">
                 <button
-                  onClick={handleBooking}
+                  onClick={() => handleBooking(movie.id)}
                   className="px-6 py-2 bg-primary text-white rounded-md hover:bg-primary/90 transition-colors"
                 >
                   예매하기
@@ -479,4 +490,3 @@ export default function MovieDetailPage() {
     </div>
   )
 }
-

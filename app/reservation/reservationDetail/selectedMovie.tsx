@@ -149,4 +149,3 @@ const MemoizedMoive = memo(SelectedMovie)
 MemoizedMoive.displayName = "SelectedMovie"
 
 export default MemoizedMoive
-

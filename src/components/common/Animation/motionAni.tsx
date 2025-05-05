@@ -1,4 +1,8 @@
-import { motion } from "framer-motion";
+"use client"
+
+import type React from "react"
+
+import { motion } from "framer-motion"
 export const BufferingAni = ({ className }: { className: string }) => {
   return (
     <div className={className}>
@@ -15,17 +19,17 @@ export const BufferingAni = ({ className }: { className: string }) => {
         ></div>
       </motion.div>
     </div>
-  );
-};
+  )
+}
 
 export const ProgressBarAni = ({
   name,
   width,
   className,
 }: {
-  name: string;
-  width: number;
-  className: string;
+  name: string
+  width: number
+  className: string
 }) => {
   return (
     <div className={className}>
@@ -42,8 +46,8 @@ export const ProgressBarAni = ({
         />
       </div>
     </div>
-  );
-};
+  )
+}
 
 export const scrollAni = (ref: React.RefObject<HTMLDivElement | null>) => {
   setTimeout(() => {
@@ -51,7 +55,7 @@ export const scrollAni = (ref: React.RefObject<HTMLDivElement | null>) => {
       ref.current.scrollIntoView({
         behavior: "smooth",
         block: "start",
-      });
+      })
     }
-  }, 100);
-};
+  }, 100)
+}

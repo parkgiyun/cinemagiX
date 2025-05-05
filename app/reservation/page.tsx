@@ -13,6 +13,7 @@ import ScrollToTopButton from "@/src/components/common/scrollTopButton"
 import MemoizedBookingInfo from "./reservationUI/bookinginfo"
 import Link from "next/link"
 import { LogOut } from "lucide-react"
+import { useRouter } from "next/navigation"
 
 export default function Reservation() {
   const [activeStep, setActiveStep] = useState(0) // 현재 활성화된 단계
@@ -21,6 +22,7 @@ export default function Reservation() {
   const text = "예매하기"
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [username, setUsername] = useState("")
+  const router = useRouter()
 
   // 로그인 상태 확인
   useEffect(() => {
@@ -44,6 +46,22 @@ export default function Reservation() {
 
     checkLoginStatus()
   }, [])
+
+  // 결제 완료 상태 확인 로직 추가 (useEffect 내부)
+  useEffect(() => {
+    // 결제 완료 상태 확인
+    const paymentCompleted = localStorage.getItem("paymentCompleted")
+    const paymentSuccess = localStorage.getItem("paymentSuccess")
+
+    if (paymentCompleted === "true" || paymentSuccess === "true") {
+      // 결제 완료 상태 초기화
+      localStorage.removeItem("paymentCompleted")
+      localStorage.removeItem("paymentSuccess")
+
+      // 메인 페이지로 리다이렉션
+      router.push("/")
+    }
+  }, [router])
 
   // 로그아웃 처리
   const handleLogout = () => {
@@ -128,10 +146,12 @@ export default function Reservation() {
       const movieId = Number.parseInt(selectedMovieId)
       setMemoMovie(movieId)
       setMovie(movieId)
+      // 영화 선택 후 자동으로 다음 단계로 이동
+      setMemoActiveStep(1)
       // 사용 후 로컬 스토리지에서 제거 (중복 선택 방지)
       localStorage.removeItem("selectedMovieId")
     }
-  }, [setMemoMovie])
+  }, [setMemoMovie, setMemoActiveStep])
 
   // 🚨activeStep의 값변화에 따른 UI 관리: 경우의 수는 0,1,2,3 🚨
   useEffect(() => {
@@ -185,7 +205,7 @@ export default function Reservation() {
         <header className="site-header">
           {/* 왜인지 로그인, 회원가입 페이지와 마진이 다름; 16px 넣으면 맞음 */}
           <div className="site-container flex justify-between items-center" style={{ marginTop: "16px" }}>
-            <Link href="/" className="site-name">
+            <Link href="/" className="site-name font-bold">
               CinemagiX
             </Link>
             <nav className="flex">
@@ -282,4 +302,3 @@ export default function Reservation() {
     </>
   )
 }
-

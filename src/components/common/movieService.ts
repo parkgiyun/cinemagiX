@@ -2,7 +2,7 @@
 
 // Base URL for TMDB API
 const TMDB_BASE_URL = "https://api.themoviedb.org/3"
-const API_KEY = "f613772b7ede7a7150acb1592fbb88e0"
+const API_KEY = "f613772b7ede7a7150acb1592fbb88e0" // 이거 괜찮은가....?
 
 // Function to create image paths
 export function makeImagePath(path: string, width = "w500") {

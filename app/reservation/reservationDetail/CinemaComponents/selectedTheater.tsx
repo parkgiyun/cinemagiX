@@ -9,7 +9,8 @@ import { useRegion, useTheather, useMovieRunningDetail, useReduxBoxoffice } from
 import { fetchSpotAndDate } from "@/src/components/common/apiService"
 import type { Movie, Region, Theater, MovieRunningDetail } from "@/src/components/common/typeReserve"
 import { calcFinishTime } from "@/src/components/common/timeClacService"
-import { MapPin, Film, Popcorn, Car, Accessibility, Star, Clock } from "lucide-react"
+import { MapPin, Clock } from "lucide-react"
+import { theaterAddresses } from "@/src/components/common/theaterData"
 
 interface SelectedTheaterProps {
   setMemoActiveStep: (id: number) => void
@@ -17,48 +18,6 @@ interface SelectedTheaterProps {
   setMemoScreen: (id: number) => void
   setMemoCinema: (region: number, theather: number) => void
   setMemoDate: (id: string) => void
-}
-
-// 극장 특성 데이터 (api?)
-const theaterFeatures = {
-  1: { hasImax: true, has4dx: false, hasParking: true, hasFood: true, hasAccessibility: true, rating: 4.5 },
-  2: { hasImax: false, has4dx: true, hasParking: true, hasFood: true, hasAccessibility: false, rating: 4.2 },
-  3: { hasImax: true, has4dx: true, hasParking: false, hasFood: true, hasAccessibility: true, rating: 4.7 },
-  4: { hasImax: false, has4dx: false, hasParking: true, hasFood: false, hasAccessibility: true, rating: 4.0 },
-  5: { hasImax: true, has4dx: false, hasParking: true, hasFood: true, hasAccessibility: true, rating: 4.3 },
-  6: { hasImax: false, has4dx: true, hasParking: true, hasFood: true, hasAccessibility: false, rating: 4.1 },
-  7: { hasImax: true, has4dx: false, hasParking: true, hasFood: false, hasAccessibility: true, rating: 4.4 },
-  8: { hasImax: false, has4dx: true, hasParking: false, hasFood: true, hasAccessibility: true, rating: 4.6 },
-  9: { hasImax: true, has4dx: false, hasParking: true, hasFood: true, hasAccessibility: false, rating: 4.2 },
-  10: { hasImax: false, has4dx: true, hasParking: true, hasFood: false, hasAccessibility: true, rating: 4.5 },
-  11: { hasImax: true, has4dx: true, hasParking: true, hasFood: true, hasAccessibility: true, rating: 4.8 },
-  12: { hasImax: false, has4dx: false, hasParking: true, hasFood: true, hasAccessibility: false, rating: 4.0 },
-  13: { hasImax: true, has4dx: false, hasParking: false, hasFood: true, hasAccessibility: true, rating: 4.3 },
-  14: { hasImax: false, has4dx: true, hasParking: true, hasFood: false, hasAccessibility: false, rating: 4.1 },
-  15: { hasImax: true, has4dx: false, hasParking: true, hasFood: true, hasAccessibility: true, rating: 4.4 },
-  16: { hasImax: false, has4dx: true, hasParking: false, hasFood: true, hasAccessibility: false, rating: 4.2 },
-  17: { hasImax: true, has4dx: false, hasParking: true, hasFood: false, hasAccessibility: true, rating: 4.5 },
-  18: { hasImax: false, has4dx: true, hasParking: true, hasFood: true, hasAccessibility: false, rating: 4.3 },
-  19: { hasImax: true, has4dx: false, hasParking: false, hasFood: true, hasAccessibility: true, rating: 4.6 },
-  20: { hasImax: false, has4dx: true, hasParking: true, hasFood: false, hasAccessibility: false, rating: 4.2 },
-  21: { hasImax: true, has4dx: false, hasParking: true, hasFood: true, hasAccessibility: true, rating: 4.7 },
-  22: { hasImax: false, has4dx: true, hasParking: false, hasFood: true, hasAccessibility: false, rating: 4.4 },
-  23: { hasImax: true, has4dx: false, hasParking: true, hasFood: false, hasAccessibility: true, rating: 4.3 },
-  24: { hasImax: false, has4dx: true, hasParking: true, hasFood: true, hasAccessibility: false, rating: 4.5 },
-  25: { hasImax: true, has4dx: false, hasParking: false, hasFood: true, hasAccessibility: true, rating: 4.2 },
-  26: { hasImax: false, has4dx: true, hasParking: true, hasFood: false, hasAccessibility: false, rating: 4.6 },
-  27: { hasImax: true, has4dx: false, hasParking: true, hasFood: true, hasAccessibility: true, rating: 4.8 },
-}
-
-// 지역별 대표 주소 (api?)
-const regionAddresses = {
-  1: "서울특별시",
-  2: "경기도",
-  3: "인천광역시",
-  4: "강원특별자치도",
-  5: "대구광역시",
-  6: "부산광역시",
-  7: "제주특별자치도",
 }
 
 const SelectedTheater: React.FC<SelectedTheaterProps> = ({
@@ -116,6 +75,30 @@ const SelectedTheater: React.FC<SelectedTheaterProps> = ({
 
   const [theaterStep, setTheatherStep] = useState(0)
 
+  // 사용자의 선호 영화관 정보를 가져오는 함수
+  const getPreferredTheaterInfo = () => {
+    const preferredTheater = localStorage.getItem("preferredTheater")
+    if (!preferredTheater) return null
+
+    // 형식: "지역명 극장명점" (예: "서울 강남점")
+    const parts = preferredTheater.split(" ")
+    if (parts.length < 2) return null
+
+    const regionName = parts[0]
+    // "점"을 제거한 극장명
+    const theaterName = parts[1].endsWith("점") ? parts[1].substring(0, parts[1].length - 1) : parts[1]
+
+    // 지역 ID 찾기
+    const region = regionList.find((r) => r.name === regionName)
+    if (!region) return null
+
+    // 극장 ID 찾기
+    const theater = theaterList.find((t) => t.region_id === region.id && t.name === theaterName)
+    if (!theater) return null
+
+    return { regionId: region.id, theaterId: theater.id }
+  }
+
   const handleRegionSelect = (regionId: number) => {
     setSelectedRegion(regionId)
     setSelectedTheater(-1)
@@ -130,7 +113,6 @@ const SelectedTheater: React.FC<SelectedTheaterProps> = ({
     setSelectedTheater(theaterId)
     setSelectedMovie(-1)
     setSelectedScreen(-1)
-    setSelectedDate("날짜선택")
     setFinishTimes([])
     scrollAni(movieListRef)
     setTheatherStep(2)
@@ -139,18 +121,28 @@ const SelectedTheater: React.FC<SelectedTheaterProps> = ({
   const handleMovieSelect = (movieId: number) => {
     setSelectedMovie(movieId)
     setSelectedScreen(-1)
-    setSelectedDate("날짜선택")
     setFinishTimes([])
     scrollAni(movieListRef)
     setTheatherStep(2)
 
-    // 여기서 스크린 상영정보 api 통신 추가.
+    // 영화가 변경되면 상영 정보 초기화
+    updateMovieRunningDetail(undefined)
+
+    // 날짜가 이미 선택되어 있으면 상영 정보 다시 로드
+    if (selectedDate !== "날짜선택") {
+      // 상영 정보는 useEffect에서 자동으로 로드됨
+      console.log("영화 변경 후 상영 정보 다시 로드")
+    }
   }
 
   const handleScreenSelect = (screening_id: number) => {
     setSelectedScreen(screening_id)
     setTheatherStep(4)
-    scrollAni(seatButtonRef)
+
+    // 상태 업데이트 후 스크롤 처리를 약간 지연시켜 상태가 적용된 후 실행되도록 함
+    setTimeout(() => {
+      scrollAni(seatButtonRef)
+    }, 50)
   }
   const handleCinema = () => {
     setMemoMoive(selectedMovie)
@@ -162,30 +154,59 @@ const SelectedTheater: React.FC<SelectedTheaterProps> = ({
   }
 
   useEffect(() => {
-    if (selectedDate === "날짜선택") return
+    if (selectedDate === "날짜선택" || selectedMovie === -1 || selectedTheater === -1) {
+      // 필수 선택 사항이 없으면 상영 정보 초기화
+      updateMovieRunningDetail(undefined)
+      return
+    }
+
     const fetchData = async () => {
       try {
         const theather = findTheaterId(selectedTheater)
         if (theather == undefined) return // theather가 undefined일 경우 처리
         const data: MovieRunningDetail[] = await fetchSpotAndDate(theather.name, selectedDate, selectedMovie)
-        const result = data[0]
-        updateMovieRunningDetail(result)
-        console.log(movieRunningDetail)
+
+        if (data && data.length > 0) {
+          const result = data[0]
+          updateMovieRunningDetail(result)
+          console.log("상영 정보 로드됨:", result)
+        } else {
+          // 데이터가 없는 경우 빈 상영 정보 객체 생성
+          updateMovieRunningDetail({
+            kobisMovieCd: "",
+            roomIds: [],
+            screeningIds: [],
+            startTimes: [],
+            tmdbMovieId: 0,
+          })
+          console.log("상영 정보 없음")
+        }
       } catch (error) {
         console.error("Error fetching data:", error)
+        // 에러 발생 시 상영 정보 초기화
+        updateMovieRunningDetail(undefined)
       }
     }
+
     fetchData()
-  }, [selectedDate])
+  }, [selectedDate, selectedMovie, selectedTheater, findTheaterId, updateMovieRunningDetail])
 
   useEffect(() => {
     scrollAni(showtimeRef)
-    //console.log(movieRunningDetail);
+
     if (movieRunningDetail == undefined) {
-      updateMovieRunningDetail(undefined)
+      // 상영 정보가 없을 때는 theaterStep을 변경하지 않습니다
       return
     }
+
+    // 이미 theaterStep이 4(좌석 선택 단계)인 경우 변경하지 않음
+    if (theaterStep === 4) {
+      return
+    }
+
+    // 그 외의 경우에만 theaterStep을 3으로 설정
     setTheatherStep(3)
+
     const movie: Movie | undefined = findMovie(movieRunningDetail.kobisMovieCd)
     if (movie === undefined) return
     const addTime = []
@@ -194,54 +215,22 @@ const SelectedTheater: React.FC<SelectedTheaterProps> = ({
       addTime.push(time)
     }
     setFinishTimes(addTime)
-  }, [movieRunningDetail])
+  }, [movieRunningDetail, theaterStep])
 
-  // 극장 특성 아이콘 렌더링 함수
-  const renderTheaterFeatures = (theaterId: number) => {
-    const features = theaterFeatures[theaterId as keyof typeof theaterFeatures]
-    if (!features) return null
-
-    return (
-      <div className="flex flex-wrap gap-1 mt-1">
-        {features.hasImax && (
-          <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
-            <Film className="w-3 h-3 mr-0.5" />
-            IMAX
-          </span>
-        )}
-        {features.has4dx && (
-          <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800">
-            <Film className="w-3 h-3 mr-0.5" />
-            4DX
-          </span>
-        )}
-        {features.hasParking && (
-          <span
-            className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800"
-            title="주차 가능"
-          >
-            <Car className="w-3 h-3" />
-          </span>
-        )}
-        {features.hasFood && (
-          <span
-            className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800"
-            title="매점 있음"
-          >
-            <Popcorn className="w-3 h-3" />
-          </span>
-        )}
-        {features.hasAccessibility && (
-          <span
-            className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800"
-            title="장애인 접근성"
-          >
-            <Accessibility className="w-3 h-3" />
-          </span>
-        )}
-      </div>
-    )
-  }
+  useEffect(() => {
+    // 선호 영화관 설정
+    const preferredTheater = getPreferredTheaterInfo()
+    if (preferredTheater) {
+      console.log("선호 영화관 자동 선택:", preferredTheater)
+      setSelectedRegion(preferredTheater.regionId)
+      // 약간의 지연 후 극장 선택 (지역 선택 후 필터링된 극장 목록이 업데이트되도록)
+      setTimeout(() => {
+        setSelectedTheater(preferredTheater.theaterId)
+        setTheatherStep(2) // 영화 선택 단계로 자동 진행
+        scrollAni(movieListRef)
+      }, 100)
+    }
+  }, [regionList, theaterList])
 
   return (
     <div className="container mx-auto py-6 px-4 md:px-6">
@@ -270,53 +259,38 @@ const SelectedTheater: React.FC<SelectedTheaterProps> = ({
             <div>
               <h2 className="text-xl font-semibold mb-3">극장 선택</h2>
               <div className="space-y-2">
-                {filteredTheaters.map((theater: Theater) => {
-                  const features = theaterFeatures[theater.id as keyof typeof theaterFeatures]
-                  return (
-                    <div
-                      key={theater.id}
-                      className={`p-3 rounded-lg border cursor-pointer transition-all ${
-                        selectedTheater === theater.id
-                          ? "border-blue-500 ring-2 ring-blue-500/50"
-                          : "border-gray-200 hover:border-gray-300"
-                      }`}
-                      onClick={() => handleTheaterSelect(theater.id)}
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="relative w-[60px] h-[40px] bg-gray-200 rounded overflow-hidden">
-                          <Image
-                            src={"/placeholder.svg"}
-                            alt={theater.name}
-                            width={60}
-                            height={40}
-                            className="w-full h-full object-cover"
-                          />
-                          {features && (
-                            <div className="absolute top-0 right-0 p-0.5 bg-yellow-400 rounded-bl">
-                              <Star className="w-3 h-3 text-white fill-white" />
-                            </div>
-                          )}
+                {filteredTheaters.map((theater: Theater) => (
+                  <div
+                    key={theater.id}
+                    className={`p-3 rounded-lg border cursor-pointer transition-all ${
+                      selectedTheater === theater.id
+                        ? "border-blue-500 ring-2 ring-blue-500/50"
+                        : "border-gray-200 hover:border-gray-300"
+                    }`}
+                    onClick={() => handleTheaterSelect(theater.id)}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="relative w-[60px] h-[40px] bg-gray-200 rounded overflow-hidden">
+                        <Image
+                          src={"/placeholder.svg"}
+                          alt={theater.name}
+                          width={60}
+                          height={40}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-center">
+                          <h3 className="font-medium">{theater.name}</h3>
                         </div>
-                        <div className="flex-1">
-                          <div className="flex items-center">
-                            <h3 className="font-medium">{theater.name}</h3>
-                            {features && (
-                              <div className="ml-2 flex items-center text-yellow-500">
-                                <Star className="w-3 h-3 fill-yellow-500" />
-                                <span className="text-xs ml-0.5">{features.rating}</span>
-                              </div>
-                            )}
-                          </div>
-                          <div className="flex items-center text-xs text-gray-500 mt-0.5">
-                            <MapPin className="h-3 w-3 mr-1" />
-                            <span>{regionAddresses[theater.region_id as keyof typeof regionAddresses]}</span>
-                          </div>
-                          {renderTheaterFeatures(theater.id)}
+                        <div className="flex items-center text-xs text-gray-500 mt-0.5">
+                          <MapPin className="h-3 w-3 mr-1" />
+                          <span>{theaterAddresses[theater.id as keyof typeof theaterAddresses]}</span>
                         </div>
                       </div>
                     </div>
-                  )
-                })}
+                  </div>
+                ))}
               </div>
             </div>
           )}
@@ -397,7 +371,7 @@ const SelectedTheater: React.FC<SelectedTheaterProps> = ({
                                     viewBox="0 0 20 20"
                                     fill="currentColor"
                                   >
-                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00.364-.118L2.98 8.72c-.783-.57-.38-1.81.588-.181h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                                   </svg>
                                   {movie.releaseDate}
                                 </div>
@@ -417,39 +391,34 @@ const SelectedTheater: React.FC<SelectedTheaterProps> = ({
                       </div>
                     ) : null}
 
-                    {selectedMovie && (
+                    {selectedMovie && selectedDate !== "날짜선택" && (
                       <div className="py-16" ref={showtimeRef}>
                         <h3 className="text-lg font-semibold mb-3">상영 시간</h3>
                         <div className="flex flex-wrap gap-2">
-                          {movieRunningDetail !== undefined ? (
-                            movieRunningDetail.screeningIds.map((screening_id: number, i: number) => (
-                              <button
-                                key={screening_id}
-                                className={`flex flex-col items-center px-4 py-2 rounded-md border text-sm font-medium transition-colors ${
-                                  selectedScreen === screening_id
-                                    ? "bg-blue-500 text-white border-blue-500"
-                                    : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
-                                }`}
-                                onClick={() => handleScreenSelect(screening_id)}
-                              >
-                                <span className="font-bold">{movieRunningDetail.startTimes[i]}</span>
-                                <span className="text-xs">{finishTimes[i]}</span>
-                                {/* <span
-                                className={`text-xs ${
-                                  selectedStart === movieRunningDetail.startTimes[i]
-                                    ? "text-blue-100"
-                                    : "text-gray-500"
-                                }`}
-                              >
-                                //{showtime.seats}
-                              </span> */}
-                              </button>
-                            ))
+                          {movieRunningDetail !== undefined && movieRunningDetail.screeningIds ? (
+                            movieRunningDetail.screeningIds.length > 0 ? (
+                              movieRunningDetail.screeningIds.map((screening_id: number, i: number) => (
+                                <button
+                                  key={screening_id}
+                                  className={`flex flex-col items-center px-4 py-2 rounded-md border text-sm font-medium transition-colors ${
+                                    selectedScreen === screening_id
+                                      ? "bg-blue-500 text-white border-blue-500"
+                                      : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+                                  }`}
+                                  onClick={() => handleScreenSelect(screening_id)}
+                                >
+                                  <span className="font-bold">{movieRunningDetail.startTimes[i]}</span>
+                                  <span className="text-xs">{finishTimes[i]}</span>
+                                </button>
+                              ))
+                            ) : (
+                              <div>선택한 날짜에 상영 일정이 없습니다.</div>
+                            )
                           ) : (
                             <div>해당 영화에 대한 상영정보가 없습니다.</div>
                           )}
                         </div>
-                        {theaterStep > 3 && (
+                        {selectedScreen !== -1 && (
                           <div className="mt-6 flex justify-end" ref={seatButtonRef}>
                             <button
                               className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
@@ -459,6 +428,12 @@ const SelectedTheater: React.FC<SelectedTheaterProps> = ({
                             </button>
                           </div>
                         )}
+                      </div>
+                    )}
+
+                    {selectedMovie && selectedDate === "날짜선택" && (
+                      <div className="py-8 text-center bg-gray-50 rounded-lg border border-gray-200 mt-4">
+                        <p className="text-gray-600">상영 시간을 확인하려면 날짜를 선택해주세요.</p>
                       </div>
                     )}
                   </>
@@ -482,4 +457,3 @@ const SelectedTheater: React.FC<SelectedTheaterProps> = ({
 const MemoizedSelectedTheater = memo(SelectedTheater)
 MemoizedSelectedTheater.displayName = "SelectedTheater"
 export default MemoizedSelectedTheater
-

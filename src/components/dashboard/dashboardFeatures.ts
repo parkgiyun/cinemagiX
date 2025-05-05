@@ -104,10 +104,15 @@ export const updateUserProfile = async (
       throw new Error("현재 비밀번호가 필요합니다.")
     }
 
+    if (currentPassword === value) {
+      throw new Error("현재 비밀번호와 새 비밀번호가 동일합니다.")
+    }
+    
     // 비밀번호 변경 시 새 비밀번호 확인
     if (field === "password" && !value) {
       throw new Error("새 비밀번호가 필요합니다.")
     }
+
 
     console.log("업데이트 요청 준비:", {
       field,
@@ -234,18 +239,23 @@ export const deleteUserAccount = async (password: string): Promise<{ success: bo
 
 // 이메일 인증 코드 전송 함수
 export const sendVerificationCode = async (email: string): Promise<{ success: boolean; message: string }> => {
+  // 이메일 형식 검증
+  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+  if (!email || !emailRegex.test(email)) {
+    return {
+      success: false,
+      message: "이메일 형식이 올바르지 않습니다."
+    };
+  }
+
   try {
-    const response = await axios.post("/api/auth/send-verification", { email })
+    const response = await axios.post("/api/auth/send", { email })
 
     console.log("인증 코드 전송 응답:", response.data)
 
-    // 응답 형식에 따라 성공 여부 판단 로직 수정
-    // 백엔드 응답이 다양한 형식일 수 있으므로 여러 조건 추가
+    // 백엔드 응답이 문자열 "SUCCESS"인 경우 처리
     if (
-      response.data === "SUCCESS" ||
-      response.data.code === "SUCCESS" ||
-      response.data.status === "success" ||
-      response.data.message === "인증 코드가 전송되었습니다."
+      response.data === "SUCCESS"
     ) {
       return {
         success: true,
@@ -283,13 +293,9 @@ export const verifyEmailCode = async (email: string, code: string): Promise<{ su
 
     console.log("인증 코드 확인 응답:", response.data)
 
-    // 응답 형식에 따라 성공 여부 판단 로직 수정
     // 백엔드 응답이 문자열 "SUCCESS"인 경우 처리
     if (
-      response.data === "SUCCESS" ||
-      response.data === true ||
-      response.data.code === "SUCCESS" ||
-      response.data.status === "success"
+      response.data === "SUCCESS"
     ) {
       return {
         success: true,
@@ -321,3 +327,42 @@ export const verifyEmailCode = async (email: string, code: string): Promise<{ su
   }
 }
 
+// 사용자 예매 내역 조회 함수 추가 (파일 하단에 추가)
+/**
+ * 사용자의 예매 내역을 조회하는 함수
+ * @param userId 사용자 ID
+ * @returns 예매 내역 목록
+ */
+export const getUserTickets = async (userId: number): Promise<any> => {
+  try {
+    const token = localStorage.getItem("token") || sessionStorage.getItem("token")
+
+    if (!token) {
+      throw new Error("인증 토큰이 없습니다.")
+    }
+
+    const response = await axios.post(
+      "http://localhost:8080/api/v1/detail/retrieve/ticket?user_id=" + userId,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "*/*",
+          Authorization: `Bearer ${token}`,
+        },
+      },
+    )
+
+    console.log("예매 내역 조회 응답:", response.data)
+
+    if (response.data.errorCode === "SUCCESS") {
+      return response.data.ticketList || []
+    }
+
+    return []
+  } catch (error: any) {
+    console.error("예매 내역 조회 오류:", error)
+    console.error("상세 오류:", error.response?.data || "상세 정보 없음")
+
+    throw new Error(error.response?.data?.message || "예매 내역을 불러오는 중 오류가 발생했습니다.")
+  }
+}

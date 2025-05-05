@@ -33,7 +33,7 @@ export async function POST(request: Request) {
         {
           success: false,
           code: "ERROR",
-          message: "이메일 형식이 올바르지 않습니다.",
+          message: "서버가 응답하지 않습니다. 잠시 후 다시 시도해주세요.",
         },
         { status: 500 },
       )

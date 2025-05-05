@@ -195,9 +195,12 @@ export const HomeContent = () => {
       return
     }
 
-    // Redux에 선택한 영화 ID 저장
+    // Redux에 선택한 영화 ID 저장 (기존 코드 유지)
     setSelectedMovie(movieId)
-    console.log("예매할 영화 ID를 Redux에 저장:", movieId)
+
+    // 로컬 스토리지에도 영화 ID 저장 (새로 추가)
+    localStorage.setItem("selectedMovieId", movieId.toString())
+    console.log("예매할 영화 ID를 로컬 스토리지에 저장:", movieId)
 
     // 예매 페이지로 이동
     router.push(`/reservation`)
@@ -358,4 +361,3 @@ export const HomeContent = () => {
     </div>
   )
 }
-

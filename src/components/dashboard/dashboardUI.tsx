@@ -1,17 +1,37 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardDescription, CardFooter, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Button } from "../common/Button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { AlertCircle, CheckCircle, Home, Trash2, MapPin, Ticket, Calendar, X, ArrowLeft, LogOut } from "lucide-react"
+import {
+  AlertCircle,
+  CheckCircle,
+  Home,
+  Trash2,
+  MapPin,
+  Ticket,
+  Calendar,
+  X,
+  ArrowLeft,
+  LogOut,
+  Loader2,
+} from "lucide-react"
 import type { UserData } from "./dashboardFeatures"
-import { updateUserProfile, deleteUserAccount, sendVerificationCode, verifyEmailCode } from "./dashboardFeatures"
+import {
+  updateUserProfile,
+  deleteUserAccount,
+  sendVerificationCode,
+  verifyEmailCode,
+  getUserTickets,
+} from "./dashboardFeatures"
+import { cancelOrder } from "../common/apiService"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
+import { useRegion, useTheather } from "@/app/redux/reduxService"
 
 interface DashboardContentProps {
   user: UserData
@@ -31,30 +51,9 @@ export const DashboardContent = ({ user, onLogout, onUpdateUser }: DashboardCont
 
   // 영화관 및 예매 관련 상태 추가
   const [selectedTheater, setSelectedTheater] = useState(user.preferredTheater || "")
-  const [bookingHistory, setBookingHistory] = useState([
-    {
-      id: "B12345",
-      movieTitle: "어벤져스: 엔드게임",
-      theater: "서울 강남점",
-      screen: "2관",
-      date: "2025-03-20",
-      time: "15:30",
-      seats: ["G7", "G8"],
-      price: 24000,
-      status: "confirmed", // confirmed, canceled
-    },
-    {
-      id: "B12346",
-      movieTitle: "인터스텔라",
-      theater: "서울 홍대점",
-      screen: "1관",
-      date: "2025-03-25",
-      time: "19:00",
-      seats: ["F5", "F6", "F7"],
-      price: 36000,
-      status: "confirmed",
-    },
-  ])
+  const [bookingHistory, setBookingHistory] = useState<any[]>([])
+  const [ticketsLoading, setTicketsLoading] = useState(false)
+  const [ticketsError, setTicketsError] = useState("")
 
   // 프로필 정보 상태
   const [username, setUsername] = useState(user.username)
@@ -72,6 +71,10 @@ export const DashboardContent = ({ user, onLogout, onUpdateUser }: DashboardCont
   const [verificationSuccess, setVerificationSuccess] = useState(false)
   const [verificationCode, setVerificationCode] = useState("")
   const [verificationLoading, setVerificationLoading] = useState(false)
+
+  // Redux에서 지역 및 극장 정보 가져오기
+  const { regionList } = useRegion()
+  const { theaterList } = useTheather()
 
   // 이메일 인증 코드 전송 함수 추가
   const handleSendVerification = async () => {
@@ -271,6 +274,74 @@ export const DashboardContent = ({ user, onLogout, onUpdateUser }: DashboardCont
     }
   }
 
+  useEffect(() => {
+    const loadUserTickets = async () => {
+      if (!user || !user.user_id) return
+
+      try {
+        setTicketsLoading(true)
+        setTicketsError("")
+
+        const tickets = await getUserTickets(user.user_id)
+
+        // API 응답 데이터를 UI에 맞는 형식으로 변환
+        const formattedTickets = tickets.map((ticket: any) => {
+          const screening = ticket.screening || {}
+          const movie = screening.movie || {}
+          const room = screening.room || {}
+          const spot = room.spot || {}
+          const region = spot.region || {}
+
+          return {
+            id: ticket.id,
+            movieTitle: movie.title || "제목 없음",
+            theater: `${region.name} ${spot.name}점`,
+            screen: `${room.roomnumber}관`,
+            date: screening.date || "날짜 정보 없음",
+            time: screening.start ? screening.start.substring(0, 5) : "시간 정보 없음",
+            seats: [`${ticket.horizontal.toUpperCase()}${ticket.vertical}`],
+            price: ticket.price || 0,
+            status: "confirmed", // 기본값은 confirmed
+            orderId: ticket.id, // 취소 시 필요한 주문 ID
+            posterImage: movie.posterImage || "",
+          }
+        })
+
+        console.log("변환된 예매 내역:", formattedTickets)
+        setBookingHistory(formattedTickets)
+      } catch (error) {
+        console.error("예매 내역 로드 오류:", error)
+        setTicketsError(error instanceof Error ? error.message : "예매 내역을 불러오는 중 오류가 발생했습니다.")
+      } finally {
+        setTicketsLoading(false)
+      }
+    }
+
+    loadUserTickets()
+  }, [user])
+
+  const handleCancelTicket = async (ticketId: number) => {
+    if (window.confirm("예매를 취소하시겠습니까? 이 작업은 되돌릴 수 없습니다.")) {
+      try {
+        setLoading(true)
+
+        // 기존 cancelOrder 함수 호출
+        const result = await cancelOrder(ticketId)
+        console.log("예매 취소 결과:", result)
+
+        // 성공 시 UI 업데이트
+        const updatedHistory = bookingHistory.map((b) => (b.id === ticketId ? { ...b, status: "canceled" } : b))
+        setBookingHistory(updatedHistory)
+        setSuccess("예매가 취소되었습니다.")
+      } catch (error) {
+        console.error("예매 취소 중 오류 발생:", error)
+        setError(error instanceof Error ? error.message : "예매 취소 중 오류가 발생했습니다.")
+      } finally {
+        setLoading(false)
+      }
+    }
+  }
+
   return (
     <div className="w-full max-w-md">
       <Card>
@@ -279,7 +350,15 @@ export const DashboardContent = ({ user, onLogout, onUpdateUser }: DashboardCont
           <CardDescription>환영합니다, {user.username}님!</CardDescription>
         </CardHeader>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <Tabs
+          value={activeTab}
+          onValueChange={(value) => {
+            setActiveTab(value)
+            setSuccess("") // 탭 변경 시 성공 메시지 초기화
+            setError("") // 탭 변경 시 에러 메시지 초기화
+          }}
+          className="w-full"
+        >
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="profile">프로필</TabsTrigger>
             <TabsTrigger value="tickets">예매</TabsTrigger>
@@ -423,17 +502,25 @@ export const DashboardContent = ({ user, onLogout, onUpdateUser }: DashboardCont
                     onChange={(e) => setSelectedTheater(e.target.value)}
                   >
                     <option value="">영화관을 선택하세요</option>
-                    <option value="서울 강남점">서울 강남점</option>
-                    <option value="서울 홍대점">서울 홍대점</option>
-                    <option value="서울 신촌점">서울 신촌점</option>
-                    <option value="서울 건대점">서울 건대점</option>
-                    <option value="서울 영등포점">서울 영등포점</option>
+                    {regionList.map((region) => (
+                      <optgroup key={region.id} label={region.name}>
+                        {theaterList
+                          .filter((theater) => theater.region_id === region.id)
+                          .map((theater) => (
+                            <option key={theater.id} value={`${region.name} ${theater.name}점`}>
+                              {region.name} {theater.name}점
+                            </option>
+                          ))}
+                      </optgroup>
+                    ))}
                   </select>
                   <Button
                     onClick={() => {
                       // 내 영화관 저장 로직
                       setSuccess("내 영화관이 저장되었습니다.")
-                      // 실제로는 API 호출하여 서버에 저장해야 함
+                      // 로컬 스토리지에도 저장
+                      localStorage.setItem("preferredTheater", selectedTheater)
+                      // 부모 컴포넌트에 알려 상태 업데이트
                       onUpdateUser("preferredTheater", selectedTheater)
                     }}
                     disabled={!selectedTheater || selectedTheater === user.preferredTheater}
@@ -453,7 +540,21 @@ export const DashboardContent = ({ user, onLogout, onUpdateUser }: DashboardCont
                   예매 내역
                 </h3>
 
-                {bookingHistory.length === 0 ? (
+                {ticketsLoading ? (
+                  <div className="flex justify-center py-8">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                  </div>
+                ) : ticketsError ? (
+                  <div className="text-center py-8 text-red-500">
+                    <p>{ticketsError}</p>
+                    <button
+                      onClick={() => window.location.reload()}
+                      className="mt-2 px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90"
+                    >
+                      다시 시도
+                    </button>
+                  </div>
+                ) : bookingHistory.length === 0 ? (
                   <div className="text-center py-8 text-muted-foreground">예매 내역이 없습니다.</div>
                 ) : (
                   <div className="space-y-4">
@@ -461,17 +562,29 @@ export const DashboardContent = ({ user, onLogout, onUpdateUser }: DashboardCont
                       <Card key={booking.id} className={booking.status === "canceled" ? "opacity-60" : ""}>
                         <CardContent className="p-4">
                           <div className="flex justify-between items-start">
-                            <div>
-                              <h4 className="font-bold text-base">{booking.movieTitle}</h4>
-                              <div className="text-sm text-muted-foreground mt-1 space-y-1">
-                                <div className="flex items-center">
-                                  <Calendar className="h-3.5 w-3.5 mr-1.5" />
-                                  {booking.date} {booking.time}
+                            <div className="flex gap-3">
+                              {booking.posterImage && (
+                                <img
+                                  src={booking.posterImage || "/placeholder.svg"}
+                                  alt={booking.movieTitle}
+                                  className="w-16 h-24 object-cover rounded"
+                                  onError={(e) => {
+                                    ;(e.target as HTMLImageElement).src = "/placeholder.svg?height=96&width=64"
+                                  }}
+                                />
+                              )}
+                              <div>
+                                <h4 className="font-bold text-base">{booking.movieTitle}</h4>
+                                <div className="text-sm text-muted-foreground mt-1 space-y-1">
+                                  <div className="flex items-center">
+                                    <Calendar className="h-3.5 w-3.5 mr-1.5" />
+                                    {booking.date} {booking.time}
+                                  </div>
+                                  <div>
+                                    {booking.theater} {booking.screen} | 좌석: {booking.seats.join(", ")}
+                                  </div>
+                                  <div className="font-medium text-foreground">{booking.price.toLocaleString()}원</div>
                                 </div>
-                                <div>
-                                  {booking.theater} {booking.screen} | 좌석: {booking.seats.join(", ")}
-                                </div>
-                                <div className="font-medium text-foreground">{booking.price.toLocaleString()}원</div>
                               </div>
                             </div>
                             <div>
@@ -480,19 +593,14 @@ export const DashboardContent = ({ user, onLogout, onUpdateUser }: DashboardCont
                                   variant="outline"
                                   size="sm"
                                   className="text-red-500 border-red-200 hover:bg-red-50 hover:text-red-600"
-                                  onClick={() => {
-                                    if (window.confirm("예매를 취소하시겠습니까? 이 작업은 되돌릴 수 없습니다.")) {
-                                      // 예매 취소 로직
-                                      const updatedHistory = bookingHistory.map((b) =>
-                                        b.id === booking.id ? { ...b, status: "canceled" } : b,
-                                      )
-                                      setBookingHistory(updatedHistory)
-                                      setSuccess("예매가 취소되었습니다.")
-                                      // 실제로는 API 호출하여 서버에 취소 요청을 해야 함
-                                    }
-                                  }}
+                                  onClick={() => handleCancelTicket(booking.id)}
+                                  disabled={loading}
                                 >
-                                  <X className="h-3.5 w-3.5 mr-1" />
+                                  {loading ? (
+                                    <Loader2 className="h-3.5 w-3.5 mr-1 animate-spin" />
+                                  ) : (
+                                    <X className="h-3.5 w-3.5 mr-1" />
+                                  )}
                                   예매 취소
                                 </Button>
                               ) : (
@@ -640,4 +748,3 @@ export const DashboardContent = ({ user, onLogout, onUpdateUser }: DashboardCont
     </div>
   )
 }
-

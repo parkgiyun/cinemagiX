@@ -65,12 +65,12 @@ export const RegisterForm = ({
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col w-full">
       {/* Header */}
       <header className="site-header">
         <div className="site-container flex justify-between items-center">
           <Link href="/" className="site-name">
-            Hansung Movie Site
+            CinemagiX
           </Link>
           <nav className="flex">
             <Link href="/" className="nav-link">

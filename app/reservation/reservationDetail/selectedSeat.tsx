@@ -1,69 +1,127 @@
-"use client";
+"use client"
 
-import type React from "react";
+import type React from "react"
 
-import { useState, useEffect, useRef, memo } from "react";
-import { fetchSeat } from "@/src/components/common/apiService";
-// import { Clock, Film, Ticket } from "lucide-react";
-import { Ticket } from "lucide-react";
-import { BufferingAni, scrollAni } from "@/src/components/common/Animation/motionAni";
+import { useState, useEffect, useRef, memo } from "react"
+import { fetchSeat, createOrder } from "@/src/components/common/apiService"
+// import { Clock, Film, Ticket } from 'lucide-react';
+import { Ticket } from "lucide-react"
+import { BufferingAni, scrollAni } from "@/src/components/common/Animation/motionAni"
 // 좌석 정보 인터페이스
+import { getUserProfile } from "@/src/components/dashboard/dashboardFeatures"
 
-export const maxSelectableSeats = 4;
+export const maxSelectableSeats = 4
 interface SeatData {
-  seatId: number;
-  horizontal: string;
-  vertical: number;
-  reserved: boolean;
+  seatId: number
+  horizontal: string
+  vertical: number
+  reserved: boolean
 }
 
 interface SelectedSeatProps {
-  screen: number;
-  setMemoSeats: (id: number[]) => void;
-  setMemoActiveStep: (id: number) => void;
+  screen: number
+  setMemoSeats: (id: number[]) => void
+  setMemoActiveStep: (id: number) => void
 }
 
 const SelectedSeat: React.FC<SelectedSeatProps> = ({ setMemoActiveStep, setMemoSeats, screen }) => {
   const fetchSeatData = async () => {
-    const seatData = await fetchSeat(screen);
-    return seatData;
-  };
+    const seatData = await fetchSeat(screen)
+    return seatData
+  }
 
-  const [seatData, setSeatData] = useState<SeatData[]>([]);
+  const [seatData, setSeatData] = useState<SeatData[]>([])
   useEffect(() => {
     fetchSeatData().then((seatData) => {
-      setSeatData(seatData);
-      console.log("🟢 Promise 해제됨:", seatData);
-    });
-  }, []);
+      setSeatData(seatData)
+      console.log("🟢 Promise 해제됨:", seatData)
+    })
+  }, [])
 
   useEffect(() => {
-    scrollAni(seatRef);
-  }, [seatData]);
-  const [selectedSeats, setSelectedSeats] = useState<SeatData[]>([]);
-  const [seat_ids, setSeat_ids] = useState<number[]>([]);
+    scrollAni(seatRef)
+  }, [seatData])
+  const [selectedSeats, setSelectedSeats] = useState<SeatData[]>([])
+  const [seat_ids, setSeat_ids] = useState<number[]>([])
 
   useEffect(() => {
     const ids = selectedSeats.map((s) => {
-      return s.seatId;
-    });
-    setSeat_ids(ids);
-  }, [selectedSeats]);
+      return s.seatId
+    })
+    setSeat_ids(ids)
 
-  const seatRef = useRef<HTMLDivElement>(null);
+    // 선택된 좌석 정보를 로컬 스토리지에 저장 (위치 정보 포함)
+    const seatPositions = selectedSeats.map((seat) => ({
+      id: seat.seatId,
+      position: `${seat.horizontal.toUpperCase()}${seat.vertical}`,
+    }))
+    localStorage.setItem("selectedSeatPositions", JSON.stringify(seatPositions))
+  }, [selectedSeats])
+
+  const seatRef = useRef<HTMLDivElement>(null)
 
   // 선택 완료 처리
-  const handleConfirm = () => {
-    if (selectedSeats.length > 0) {
-      console.log("선택된 좌석:", selectedSeats);
-      // 실제 구현에서는 다음 단계로 진행하는 로직 추가
+  const handleConfirm = async () => {
+    if (selectedSeats.length === 0) {
+      alert("좌석을 선택해주세요.")
+      return
     }
-    setMemoSeats(seat_ids);
-    setMemoActiveStep(3);
-  };
+
+    try {
+      // 로그인 확인
+      const userData = getUserProfile()
+      if (!userData || !userData.user_id) {
+        alert("로그인이 필요합니다.")
+        return
+      }
+
+      console.log("선택된 좌석:", selectedSeats)
+
+      // 주문 생성 API 호출
+      const orderData = {
+        userId: userData.user_id,
+        screeningId: screen,
+        seatIds: seat_ids,
+      }
+
+      console.log("주문 생성 요청 데이터:", orderData)
+
+      const orderResponse = await createOrder(orderData)
+      console.log("주문 생성 응답:", orderResponse)
+
+      // 주문 ID를 로컬 스토리지에 저장
+      if (orderResponse && orderResponse.id) {
+        localStorage.setItem("currentOrderId", orderResponse.id.toString())
+        console.log("주문 ID 저장됨:", orderResponse.id)
+
+        // 주문 응답 전체를 저장 (나중에 결제 상태 확인에 사용)
+        localStorage.setItem("currentOrderData", JSON.stringify(orderResponse))
+      }
+
+      // 다음 단계로 이동
+      setMemoSeats(seat_ids)
+      setMemoActiveStep(3)
+    } catch (error) {
+      console.error("주문 생성 중 오류 발생:", error)
+      alert("주문 생성 중 오류가 발생했습니다. 다시 시도해주세요.")
+    }
+  }
   const handleReSeat = () => {
-    setSelectedSeats([]);
-  };
+    setSelectedSeats([])
+  }
+
+  // 좌석 정렬 함수 추가
+  const sortSelectedSeats = (seats: SeatData[]): SeatData[] => {
+    return [...seats].sort((a, b) => {
+      // 먼저 행(알파벳)으로 정렬
+      if (a.horizontal !== b.horizontal) {
+        return a.horizontal.localeCompare(b.horizontal)
+      }
+
+      // 행이 같으면 열(숫자)로 정렬
+      return a.vertical - b.vertical
+    })
+  }
 
   return (
     <div className="container mx-auto py-6 px-4 md:px-6">
@@ -82,11 +140,7 @@ const SelectedSeat: React.FC<SelectedSeatProps> = ({ setMemoActiveStep, setMemoS
             <span className="font-medium">선택한 좌석:</span>
             {selectedSeats.length > 0 ? (
               <span>
-                {selectedSeats
-                  .sort((a, b) => {
-                    if (a.horizontal !== b.horizontal) return a.vertical - b.vertical;
-                    return a.vertical - b.vertical;
-                  })
+                {sortSelectedSeats(selectedSeats)
                   .map((seat) => `${seat.horizontal.toUpperCase()}${seat.vertical}`)
                   .join(", ")}
               </span>
@@ -98,9 +152,7 @@ const SelectedSeat: React.FC<SelectedSeatProps> = ({ setMemoActiveStep, setMemoS
         <div className="flex gap-2">
           <button
             className={`px-3 py-1 text-sm border border-gray-300 rounded-md transition-colors ${
-              selectedSeats.length === 0
-                ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                : "hover:bg-gray-100"
+              selectedSeats.length === 0 ? "bg-gray-300 text-gray-500 cursor-not-allowed" : "hover:bg-gray-100"
             }`}
             onClick={handleReSeat}
             disabled={selectedSeats.length === 0}
@@ -132,11 +184,7 @@ const SelectedSeat: React.FC<SelectedSeatProps> = ({ setMemoActiveStep, setMemoS
         </div>
         {/* 좌석 보여주는 컴포넌트 */}
         {seatData ? (
-          <ViewSeat
-            seatData={seatData}
-            selectedSeats={selectedSeats}
-            setSelectedSeats={setSelectedSeats}
-          />
+          <ViewSeat seatData={seatData} selectedSeats={selectedSeats} setSelectedSeats={setSelectedSeats} />
         ) : (
           <BufferingAni className={""} />
         )}
@@ -164,89 +212,80 @@ const SelectedSeat: React.FC<SelectedSeatProps> = ({ setMemoActiveStep, setMemoS
       </div>
       {/* 스크린 */}
     </div>
-  );
-};
-const MemoizedSelectedSeat = memo(SelectedSeat);
-MemoizedSelectedSeat.displayName = "SelectedSeat";
-export default MemoizedSelectedSeat;
+  )
+}
+const MemoizedSelectedSeat = memo(SelectedSeat)
+MemoizedSelectedSeat.displayName = "SelectedSeat"
+export default MemoizedSelectedSeat
 
 interface ViewSeatProps {
-  seatData: SeatData[];
-  selectedSeats: SeatData[];
-  setSelectedSeats: React.Dispatch<React.SetStateAction<SeatData[]>>;
+  seatData: SeatData[]
+  selectedSeats: SeatData[]
+  setSelectedSeats: React.Dispatch<React.SetStateAction<SeatData[]>>
 }
 
 const ViewSeat: React.FC<ViewSeatProps> = ({ seatData, selectedSeats, setSelectedSeats }) => {
   // 좌석 데이터를 그리드 형태로 변환
   const organizeSeatsIntoGrid = () => {
-    if (!seatData || seatData.length === 0) return { grid: [], rowLabels: [], colLabels: [] };
+    if (!seatData || seatData.length === 0) return { grid: [], rowLabels: [], colLabels: [] }
 
     // 모든 가능한 행(horizontal)과 열(vertical) 값 추출
-    const horizontalValues = Array.from(new Set(seatData.map((seat) => seat.horizontal))).sort();
-    const verticalValues = Array.from(new Set(seatData.map((seat) => seat.vertical))).sort(
-      (a, b) => a - b
-    );
+    const horizontalValues = Array.from(new Set(seatData.map((seat) => seat.horizontal))).sort()
+    const verticalValues = Array.from(new Set(seatData.map((seat) => seat.vertical))).sort((a, b) => a - b)
 
     // 빈 그리드 생성
     const grid = Array(horizontalValues.length)
       .fill(null)
-      .map(() => Array(verticalValues.length).fill(null));
+      .map(() => Array(verticalValues.length).fill(null))
 
     // 그리드에 좌석 데이터 채우기
     seatData.forEach((seat) => {
-      const rowIndex = horizontalValues.indexOf(seat.horizontal);
-      const colIndex = verticalValues.indexOf(seat.vertical);
+      const rowIndex = horizontalValues.indexOf(seat.horizontal)
+      const colIndex = verticalValues.indexOf(seat.vertical)
 
       if (rowIndex !== -1 && colIndex !== -1) {
-        grid[rowIndex][colIndex] = seat;
+        grid[rowIndex][colIndex] = seat
       }
-    });
+    })
 
-    return { grid, rowLabels: horizontalValues, colLabels: verticalValues };
-  };
+    return { grid, rowLabels: horizontalValues, colLabels: verticalValues }
+  }
 
-  const { grid, rowLabels, colLabels } = organizeSeatsIntoGrid();
+  const { grid, rowLabels, colLabels } = organizeSeatsIntoGrid()
 
   // 좌석 선택 처리
   const handleSeatClick = (seat: SeatData) => {
-    if (seat.reserved) return; // reserved: true인 좌석은 선택 불가
+    if (seat.reserved) return // reserved: true인 좌석은 선택 불가
 
     //const seatKey = { row: seat.horizontal, col: seat.vertical };
-    const isSeatSelected = selectedSeats.some(
-      (s) => s.vertical === seat.vertical && s.horizontal === seat.horizontal
-    );
+    const isSeatSelected = selectedSeats.some((s) => s.vertical === seat.vertical && s.horizontal === seat.horizontal)
 
     if (isSeatSelected) {
       // 이미 선택된 좌석이면 선택 해제
-      setSelectedSeats(
-        selectedSeats.filter(
-          (s) => !(s.vertical === seat.vertical && s.horizontal === seat.horizontal)
-        )
-      );
+      setSelectedSeats(selectedSeats.filter((s) => !(s.vertical === seat.vertical && s.horizontal === seat.horizontal)))
     } else {
       // 새로운 좌석 선택 (최대 선택 가능 좌석 수 확인)
       if (selectedSeats.length < maxSelectableSeats) {
-        setSelectedSeats([...selectedSeats, seat]);
+        setSelectedSeats([...selectedSeats, seat])
         //setSeat_ids([...seat_ids, seat.seatId]);
       }
     }
-  };
+  }
+
   // 좌석이 선택되었는지 확인
   const isSeatSelected = (seat: SeatData) => {
-    return selectedSeats.some(
-      (s) => s.horizontal === seat.horizontal && s.vertical === seat.vertical
-    );
-  };
+    return selectedSeats.some((s) => s.horizontal === seat.horizontal && s.vertical === seat.vertical)
+  }
   // 좌석 상태에 따른 스타일 클래스 결정
   const getSeatClass = (seat: SeatData) => {
-    if (!seat) return "invisible"; // 좌석이 없는 경우
-    if (seat.reserved) return "bg-gray-400 text-gray-200 cursor-not-allowed"; // reserved: true인 좌석은 선택 불가
-    if (isSeatSelected(seat)) return "bg-blue-500 text-white"; // 선택된 좌석
-    return "bg-gray-200 hover:bg-blue-200 text-gray-700"; // 선택 가능한 좌석
-  };
+    if (!seat) return "invisible" // 좌석이 없는 경우
+    if (seat.reserved) return "bg-gray-400 text-gray-200 cursor-not-allowed" // reserved: true인 좌석은 선택 불가
+    if (isSeatSelected(seat)) return "bg-blue-500 text-white" // 선택된 좌석
+    return "bg-gray-200 hover:bg-blue-200 text-gray-700" // 선택 가능한 좌석
+  }
 
   if (grid.length === 0) {
-    return <div className="text-center py-8">좌석 정보를 불러오는 중...</div>;
+    return <div className="text-center py-8">좌석 정보를 불러오는 중...</div>
   }
 
   return (
@@ -255,10 +294,7 @@ const ViewSeat: React.FC<ViewSeatProps> = ({ seatData, selectedSeats, setSelecte
       <div className="grid grid-cols-[auto_repeat(10,minmax(0,1fr))] gap-1 max-w-3xl mx-auto mb-2">
         <div className="w-10 h-10"></div> {/* 빈 셀 (좌상단 모서리) */}
         {colLabels.map((col, index) => (
-          <div
-            key={index}
-            className="w-10 h-10 flex items-center justify-center text-sm font-medium"
-          >
+          <div key={index} className="w-10 h-10 flex items-center justify-center text-sm font-medium">
             {col}
           </div>
         ))}
@@ -266,10 +302,7 @@ const ViewSeat: React.FC<ViewSeatProps> = ({ seatData, selectedSeats, setSelecte
 
       {/* 좌석 그리드 (행 레이블 포함) */}
       {grid.map((row, rowIndex) => (
-        <div
-          key={rowIndex}
-          className="grid grid-cols-[auto_repeat(10,minmax(0,1fr))] gap-1 max-w-3xl mx-auto"
-        >
+        <div key={rowIndex} className="grid grid-cols-[auto_repeat(10,minmax(0,1fr))] gap-1 max-w-3xl mx-auto">
           {/* 행 레이블 (왼쪽) */}
           <div className="w-10 h-10 flex items-center justify-center text-sm font-medium">
             {rowLabels[rowIndex].toUpperCase()}
@@ -291,5 +324,5 @@ const ViewSeat: React.FC<ViewSeatProps> = ({ seatData, selectedSeats, setSelecte
         </div>
       ))}
     </div>
-  );
-};
+  )
+}

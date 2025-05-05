@@ -85,7 +85,7 @@ export const useMovieRunningDetail = () => {
   return { movieRunningDetail, updateMovieRunningDetail, findStartTime }
 }
 
-// 예매를 위해 선택된 영화 ID를 관리하는 훅 추가
+// useSelectedMovieForReservation 훅에 clearSelectedMovie 함수 추가
 export const useSelectedMovieForReservation = () => {
   const dispatch = useDispatch()
   const selectedMovieId = useSelector((state: RootState) => state.selectedMovieForReservation.movieId)
@@ -103,4 +103,3 @@ export const useSelectedMovieForReservation = () => {
 
   return { selectedMovieId, setSelectedMovie, clearSelectedMovie }
 }
-
