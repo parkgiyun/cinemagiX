@@ -9,10 +9,9 @@ export async function POST(request: Request) {
     console.log("인증 코드 확인 요청:", { email, code })
 
     try {
-      // 백엔드 API가 'authnum'이라는 파라미터 이름을 사용하는 것으로 보임
       const springResponse = await axios.post(
         "http://localhost:8080/api/v1/email/check",
-        { email, authnum: code }, // code를 authnum으로 변경
+        { email, authnum: code },
         {
           headers: {
             "Content-Type": "application/json",
