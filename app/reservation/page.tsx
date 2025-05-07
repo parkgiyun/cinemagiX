@@ -11,41 +11,15 @@ import { fetchBoxofficeGet } from "@/src/components/common/apiService"
 import { useReduxBoxoffice } from "@/app/redux/reduxService"
 import ScrollToTopButton from "@/src/components/common/scrollTopButton"
 import MemoizedBookingInfo from "./reservationUI/bookinginfo"
-import Link from "next/link"
-import { LogOut } from "lucide-react"
 import { useRouter } from "next/navigation"
+import { Header } from "@/src/components/common/Header"
 
 export default function Reservation() {
   const [activeStep, setActiveStep] = useState(0) // 현재 활성화된 단계
   const [isLoading, setIsLoading] = useState(false)
   const [BookingState, setBookingState] = useState(false)
   const text = "예매하기"
-  const [isLoggedIn, setIsLoggedIn] = useState(false)
-  const [username, setUsername] = useState("")
   const router = useRouter()
-
-  // 로그인 상태 확인
-  useEffect(() => {
-    const checkLoginStatus = () => {
-      const token = localStorage.getItem("token") || sessionStorage.getItem("token")
-      const userStr = localStorage.getItem("user") || sessionStorage.getItem("user")
-
-      if (token && userStr) {
-        try {
-          const userData = JSON.parse(userStr)
-          setIsLoggedIn(true)
-          setUsername(userData.username || "사용자")
-        } catch (error) {
-          console.error("사용자 정보 파싱 오류:", error)
-          setIsLoggedIn(false)
-        }
-      } else {
-        setIsLoggedIn(false)
-      }
-    }
-
-    checkLoginStatus()
-  }, [])
 
   // 결제 완료 상태 확인 로직 추가 (useEffect 내부)
   useEffect(() => {
@@ -62,17 +36,6 @@ export default function Reservation() {
       router.push("/")
     }
   }, [router])
-
-  // 로그아웃 처리
-  const handleLogout = () => {
-    localStorage.removeItem("token")
-    localStorage.removeItem("user")
-    sessionStorage.removeItem("token")
-    sessionStorage.removeItem("user")
-    setIsLoggedIn(false)
-    setUsername("")
-    window.location.reload() // 페이지 새로고침
-  }
 
   // 🚨서버에서 데이터 가져오기 🚨
   const { updateMovieList } = useReduxBoxoffice()
@@ -202,45 +165,8 @@ export default function Reservation() {
   return (
     <>
       <div className="min-h-screen bg-gray-50">
-        <header className="site-header">
-          {/* 왜인지 로그인, 회원가입 페이지와 마진이 다름; 16px 넣으면 맞음 */}
-          <div className="site-container flex justify-between items-center" style={{ marginTop: "16px" }}>
-            <Link href="/" className="site-name font-bold">
-              CinemagiX
-            </Link>
-            <nav className="flex">
-              {isLoggedIn ? (
-                <>
-                  <span className="nav-link">
-                    <span className="text-primary font-medium">{username}</span>님 환영합니다
-                  </span>
-                  <Link href="/dashboard" className="nav-link">
-                    <span className="bg-primary text-white px-2 py-1 text-xs rounded">마이페이지</span>
-                  </Link>
-                  <button
-                    onClick={handleLogout}
-                    className="nav-link flex items-center text-gray-600 hover:text-primary"
-                  >
-                    <LogOut className="h-3.5 w-3.5 mr-1" />
-                    로그아웃
-                  </button>
-                </>
-              ) : (
-                <>
-                  <Link href="/login" className="nav-link">
-                    로그인
-                  </Link>
-                  <Link href="/register" className="nav-link">
-                    회원가입
-                  </Link>
-                  <Link href="/dashboard" className="nav-link">
-                    <span className="bg-primary text-white px-2 py-1 text-xs rounded">마이페이지</span>
-                  </Link>
-                </>
-              )}
-            </nav>
-          </div>
-        </header>
+        {/* 공통 헤더 사용 */}
+        <Header activePage="reservation" />
 
         {/* 예매 페이지 컨테이너 너비 확장 */}
         <div className="max-w-[1200px] mx-auto px-4 md:px-6 py-8">

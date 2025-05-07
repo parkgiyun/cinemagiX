@@ -727,20 +727,20 @@ export const DashboardContent = ({ user, onLogout, onUpdateUser }: DashboardCont
         </Tabs>
 
         <CardFooter className="flex flex-col space-y-2 pt-4">
-          <div className="flex space-x-2 w-full">
-            <Button onClick={() => router.back()} variant="outline" className="flex-1">
+          <div className="flex flex-col sm:flex-row w-full gap-2">
+            <Button onClick={() => router.back()} variant="outline" className="w-full sm:flex-1">
               <ArrowLeft className="mr-2 h-4 w-4" />
-              뒤로 가기
+              <span className="sm:inline">뒤로 가기</span>
             </Button>
-            <Button asChild variant="secondary" className="flex-1">
-              <Link href="/">
+            <Button asChild variant="secondary" className="w-full sm:flex-1">
+              <Link href="/" className="flex items-center justify-center">
                 <Home className="mr-2 h-4 w-4" />
-                홈으로
+                <span className="sm:inline">홈으로</span>
               </Link>
             </Button>
-            <Button onClick={onLogout} variant="outline" className="flex-1">
+            <Button onClick={onLogout} variant="outline" className="w-full sm:flex-1">
               <LogOut className="mr-2 h-4 w-4" />
-              로그아웃
+              <span className="sm:inline">로그아웃</span>
             </Button>
           </div>
         </CardFooter>

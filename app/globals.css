@@ -33,9 +33,6 @@
     --ring: 0 72% 51%;
 
     --radius: 0.25rem;
-
-    /* 사이트 컨테이너 변수 추가 */
-    --site-padding: 2.5rem;
   }
 
   .dark {
@@ -72,41 +69,23 @@
 @layer base {
   * {
     @apply border-border;
-    box-sizing: border-box;
   }
   body {
     @apply bg-background text-foreground;
-    overflow-x: hidden; /* 가로 스크롤 방지 */
-    margin: 0;
-    padding: 0;
-  }
-
-  /* 모든 섹션에 최소 여백 적용 */
-  section,
-  header,
-  footer,
-  main {
-    padding-left: var(--site-padding);
-    padding-right: var(--site-padding);
   }
 }
 
 .site-header {
   border-bottom: 1px solid #e0e0e0;
-  padding: 1rem var(--site-padding);
+  padding: 1rem 0;
   margin-bottom: 2rem;
   width: 100%;
-  position: relative;
-  z-index: 50;
 }
 
 .site-container {
-  max-width: 1000px;
-  width: 100%;
+  width: 1000px;
   margin: 0 auto;
-  padding-left: var(--site-padding);
-  padding-right: var(--site-padding);
-  box-sizing: border-box; /* 패딩이 너비에 포함되도록 설정 */
+  padding: 0 1rem;
 }
 
 .site-name {
@@ -151,10 +130,23 @@
 }
 
 .auth-title {
-  font-size: 2rem;
   font-weight: 600;
   margin-bottom: 1rem;
   text-align: center;
+}
+
+/* 모바일 화면에서는 작은 폰트 크기 적용 */
+@media (max-width: 480px) {
+  .auth-title {
+    font-size: 1.5rem; 
+  }
+}
+
+/* 480px 이상 화면에서는 큰 폰트 크기 적용 */
+@media (min-width: 480px) {
+  .auth-title {
+    font-size: 2rem;
+  }
 }
 
 .auth-form {
@@ -218,43 +210,6 @@
   transform: translateY(-5px);
 }
 
-/* 영화 포스터의 일관된 비율을 유지하기 위한 스타일 */
-.movie-poster {
-  aspect-ratio: 2 / 3;
-  object-fit: cover;
-  width: 100%;
-  height: auto;
-}
-
-/* 홈페이지의 영화 그리드 수정 */
-.movie-grid .movie-card .bg-gray-200 {
-  aspect-ratio: 2 / 3;
-  overflow: hidden;
-}
-
-.movie-grid .movie-card img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-/* 영화 상세 페이지 수정 */
-.poster {
-  width: 300px;
-  height: 450px; /* 2:3 비율 유지 */
-  object-fit: cover;
-  border-radius: 0.5rem;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-/* 예매 페이지 수정 */
-.reservation-movie-poster {
-  aspect-ratio: 2 / 3;
-  object-fit: cover;
-  width: 100%;
-  height: auto;
-}
-
 /* 큰 화면 (1200px 이하) 반응형 스타일 */
 @media (max-width: 1200px) {
   :root {
@@ -307,18 +262,14 @@
     height: 200px;
   }
 
-  /* .movie-grid {
+  .movie-grid {
     grid-template-columns: repeat(1, 1fr);
-  } */
-
-  .site-name {
-    color: hsl(0, 72%, 51%);
-    font-weight: 700 !important;
-    font-size: 1.5rem;
-    letter-spacing: 0.05em;
   }
 
-  /* 섹션 제목 크기 조정 추가 */
+  .site-name {
+    font-size: 1.5rem;
+  }
+
   section h2.text-3xl {
     font-size: 1.5rem; /* 24px */
     line-height: 2rem; /* 32px */
@@ -327,6 +278,63 @@
   /* 모바일 메뉴 스타일 */
   .site-header .nav-link {
     margin-left: 0;
+  }
+}
+
+/* 햄버거 메뉴 스타일 */
+.mobile-menu-button {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.mobile-menu {
+  display: none;
+  background-color: white;
+  padding: 0.75rem 0;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.mobile-menu .site-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.mobile-menu .nav-link {
+  margin-left: 0;
+  text-align: center;
+  padding: 0.5rem 0;
+}
+
+.mobile-menu .nav-link.with-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mobile-menu .nav-link.with-icon svg {
+  margin-right: 0.5rem;
+  width: 1rem;
+  height: 1rem;
+}
+
+/* 모바일 메뉴 토글 스크립트를 위한 클래스 */
+.mobile-menu.active {
+  display: block;
+}
+
+@media (max-width: 640px) {
+  .mobile-menu-button {
+    display: flex;
+  }
+
+  .desktop-nav {
+    display: none;
   }
 }
 

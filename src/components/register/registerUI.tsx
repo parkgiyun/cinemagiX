@@ -6,6 +6,7 @@ import { Button } from "../common/Button"
 import { ErrorAlert } from "../common/ErrorAlert"
 import Link from "next/link"
 import { CheckCircle2, Loader2 } from "lucide-react"
+import { Header } from "../common/Header"
 
 interface RegisterFormData {
   email: string
@@ -66,25 +67,8 @@ export const RegisterForm = ({
 
   return (
     <div className="min-h-screen flex flex-col w-full">
-      {/* Header */}
-      <header className="site-header">
-        <div className="site-container flex justify-between items-center">
-          <Link href="/" className="site-name">
-            CinemagiX
-          </Link>
-          <nav className="flex">
-            <Link href="/" className="nav-link">
-              홈
-            </Link>
-            <Link href="/register" className="nav-link active">
-              회원가입
-            </Link>
-            <Link href="/dashboard" className="nav-link">
-            <span className="bg-primary text-white px-2 py-1 text-xs rounded">마이페이지</span>
-            </Link>
-          </nav>
-        </div>
-      </header>
+      {/* 공통 헤더 사용 */}
+      <Header activePage="register" />
 
       <div className="flex-1 flex items-center justify-center p-4">
         <div className="auth-container bg-white p-8 rounded-lg shadow-sm">
@@ -99,7 +83,7 @@ export const RegisterForm = ({
                 <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
                   이메일
                 </label>
-                <div className="flex space-x-2">
+                <div className="flex flex-col space-y-2 sm:flex-row sm:space-y-0 sm:space-x-2">
                   <input
                     type="email"
                     id="email"
@@ -115,7 +99,7 @@ export const RegisterForm = ({
                     type="button"
                     onClick={handleSendVerification}
                     disabled={verificationLoading || (verificationSent && verificationSuccess) || !formData.email}
-                    className="whitespace-nowrap bg-primary hover:bg-primary/90"
+                    className="whitespace-nowrap bg-primary hover:bg-primary/90 w-full sm:w-auto"
                   >
                     {verificationLoading ? (
                       <Loader2 className="h-4 w-4 animate-spin" />
@@ -135,7 +119,7 @@ export const RegisterForm = ({
                   <label htmlFor="verificationCode" className="block text-sm font-medium text-gray-700 mb-1">
                     인증 코드
                   </label>
-                  <div className="flex space-x-2">
+                  <div className="flex flex-col space-y-2 sm:flex-row sm:space-y-0 sm:space-x-2">
                     <input
                       type="text"
                       id="verificationCode"
@@ -149,7 +133,7 @@ export const RegisterForm = ({
                       type="button"
                       onClick={handleVerifyCode}
                       disabled={verificationLoading || !verificationCode}
-                      className="whitespace-nowrap bg-primary hover:bg-primary/90"
+                      className="whitespace-nowrap bg-primary hover:bg-primary/90 w-full sm:w-auto"
                     >
                       {verificationLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "확인"}
                     </Button>
@@ -230,4 +214,3 @@ export const RegisterForm = ({
     </div>
   )
 }
-

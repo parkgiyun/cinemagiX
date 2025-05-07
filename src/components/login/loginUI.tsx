@@ -5,6 +5,7 @@ import { useState } from "react"
 import { Button } from "../common/Button"
 import { ErrorAlert } from "../common/ErrorAlert"
 import Link from "next/link"
+import { Header } from "../common/Header"
 
 interface LoginFormProps {
   onSubmit: (email: string, password: string) => Promise<void>
@@ -23,25 +24,8 @@ export const LoginForm = ({ onSubmit, error, loading }: LoginFormProps) => {
 
   return (
     <div className="min-h-screen flex flex-col w-full">
-      {/* Header */}
-      <header className="site-header">
-        <div className="site-container flex justify-between items-center">
-          <Link href="/" className="site-name">
-            CinemagiX
-          </Link>
-          <nav className="flex">
-            <Link href="/" className="nav-link active">
-              홈
-            </Link>
-            <Link href="/register" className="nav-link">
-              회원가입
-            </Link>
-            <Link href="/dashboard" className="nav-link">
-              <span className="bg-primary text-white px-2 py-1 text-xs rounded">마이페이지</span>
-            </Link>
-          </nav>
-        </div>
-      </header>
+      {/* 공통 헤더 사용 */}
+      <Header activePage="login" />
 
       <div className="flex-1 flex items-center justify-center p-4">
         <div className="auth-container bg-white p-8 rounded-lg shadow-sm">

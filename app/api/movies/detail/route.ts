@@ -37,4 +37,3 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "영화 정보를 가져오는데 실패했습니다." }, { status: 500 })
   }
 }
-

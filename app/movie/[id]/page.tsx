@@ -4,12 +4,12 @@ import type React from "react"
 
 import { useEffect, useState } from "react"
 import { useParams, useRouter } from "next/navigation"
-import { Star, User, MessageSquare, Heart, Share2, ArrowLeft, Loader2, LogOut, Film, Users } from "lucide-react"
+import { Star, User, MessageSquare, Heart, Share2, ArrowLeft, Loader2, Film, Users } from "lucide-react"
 import Link from "next/link"
 import { getMovie, getCast, getVideos, makeImagePath } from "@/src/components/common/movieService"
-import { logout } from "@/src/components/dashboard/dashboardFeatures"
 import styles from "./styles.module.css"
 import { useSelectedMovieForReservation } from "@/app/redux/reduxService"
+import { Header } from "@/src/components/common/Header"
 
 export default function MovieDetailPage() {
   const params = useParams()
@@ -175,13 +175,6 @@ export default function MovieDetailPage() {
     router.push(`/reservation`)
   }
 
-  const handleLogout = () => {
-    logout()
-    setIsLoggedIn(false)
-    setUsername("")
-    router.refresh() // 페이지 새로고침
-  }
-
   // Loading state
   if (loading) {
     return (
@@ -217,43 +210,8 @@ export default function MovieDetailPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="site-header">
-        {/* 왜인지 로그인, 회원가입 페이지와 마진이 다름; 16px 넣으면 맞음 */}
-        <div className="site-container flex justify-between items-center" style={{ marginTop: "16px" }}>
-          <Link href="/" className="site-name font-bold">
-            CinemagiX
-          </Link>
-          <nav className="flex">
-            {isLoggedIn ? (
-              <>
-                <span className="nav-link">
-                  <span className="text-primary font-medium">{username}</span>님 환영합니다
-                </span>
-                <Link href="/dashboard" className="nav-link">
-                  <span className="bg-primary text-white px-2 py-1 text-xs rounded">마이페이지</span>
-                </Link>
-                <button onClick={handleLogout} className="nav-link flex items-center text-gray-600 hover:text-primary">
-                  <LogOut className="h-3.5 w-3.5 mr-1" />
-                  로그아웃
-                </button>
-              </>
-            ) : (
-              <>
-                <Link href="/login" className="nav-link">
-                  로그인
-                </Link>
-                <Link href="/register" className="nav-link">
-                  회원가입
-                </Link>
-                <Link href="/dashboard" className="nav-link">
-                  <span className="bg-primary text-white px-2 py-1 text-xs rounded">마이페이지</span>
-                </Link>
-              </>
-            )}
-          </nav>
-        </div>
-      </header>
+      {/* 공통 헤더 사용 */}
+      <Header activePage="movie" />
 
       <main className="site-container py-8">
         {/* Back button */}

@@ -133,4 +133,3 @@ export const regionListSlicesReducer = regionListSlices.reducer
 export const theaterListSlicesReducer = theaterListSlices.reducer
 export const movieRunningDetailReducer = movieRunningDetailSlices.reducer
 export const selectedMovieForReservationReducer = selectedMovieForReservationSlice.reducer
-

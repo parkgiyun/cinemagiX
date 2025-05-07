@@ -3,17 +3,15 @@
 import Link from "next/link"
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
-import { logout } from "../dashboard/dashboardFeatures"
-import { LogOut, Loader2 } from "lucide-react"
+import { Loader2 } from "lucide-react"
 import { fetchBoxofficeGet } from "../common/apiService"
 import type { Movie } from "../common/typeReserve"
-// 필요한 import 추가
 import { useSelectedMovieForReservation } from "@/app/redux/reduxService"
+import { Header } from "../common/Header"
 
 export const HomeContent = () => {
   const router = useRouter()
   const [isLoggedIn, setIsLoggedIn] = useState(false)
-  const [username, setUsername] = useState("")
   // 영화 데이터 상태
   const [movies, setMovies] = useState<Movie[]>([])
   // 로딩 및 오류 상태
@@ -146,7 +144,6 @@ export const HomeContent = () => {
         try {
           const userData = JSON.parse(userStr)
           setIsLoggedIn(true)
-          setUsername(userData.username || "사용자")
         } catch (error) {
           console.error("사용자 정보 파싱 오류:", error)
           setIsLoggedIn(false)
@@ -180,13 +177,6 @@ export const HomeContent = () => {
     setMovies(sortedMovies)
   }
 
-  const handleLogout = () => {
-    logout()
-    setIsLoggedIn(false)
-    setUsername("")
-    router.refresh() // 페이지 새로고침
-  }
-
   // 예매 처리 함수 수정
   const handleBooking = (movieId: number) => {
     if (!isLoggedIn) {
@@ -208,43 +198,8 @@ export const HomeContent = () => {
 
   return (
     <div className="min-h-screen flex flex-col w-full">
-      {/* Header */}
-      <header className="site-header border-none">
-        <div className="site-container flex justify-between items-center">
-          {/* 왜인지 로그인, 회원가입 페이지와 마진이 다름; 16px 넣으면 맞음 */}
-          <div className="site-name" style={{ marginTop: "16px" }}>
-            CinemagiX
-          </div>
-          <nav className="flex" style={{ marginTop: "16px" }}>
-            {isLoggedIn ? (
-              <>
-                <span className="nav-link">
-                  <span className="text-primary font-medium">{username}</span>님 환영합니다
-                </span>
-                <Link href="/dashboard" className="nav-link">
-                  <span className="bg-primary text-white px-2 py-1 text-xs rounded">마이페이지</span>
-                </Link>
-                <button onClick={handleLogout} className="nav-link flex items-center text-gray-600 hover:text-primary">
-                  <LogOut className="h-3.5 w-3.5 mr-1" />
-                  로그아웃
-                </button>
-              </>
-            ) : (
-              <>
-                <Link href="/login" className="nav-link active">
-                  로그인
-                </Link>
-                <Link href="/register" className="nav-link">
-                  회원가입
-                </Link>
-                <Link href="/dashboard" className="nav-link">
-                  <span className="bg-primary text-white px-2 py-1 text-xs rounded">마이페이지</span>
-                </Link>
-              </>
-            )}
-          </nav>
-        </div>
-      </header>
+      {/* 공통 헤더 사용 */}
+      <Header activePage="home" />
 
       {/* Main Content */}
       <main className="flex-1">
@@ -298,7 +253,7 @@ export const HomeContent = () => {
               <div className="movie-grid">
                 {movies.map((movie) => (
                   <div key={movie.id} className="movie-card w-full overflow-hidden">
-                    <div className="bg-gray-200 h-64 rounded-md mb-3 relative group">
+                    <div className="bg-gray-200 aspect-[2/3] rounded-md mb-3 relative group">
                       <Link href={`/movie/${movie.id}`}>
                         <img
                           src={
@@ -306,7 +261,7 @@ export const HomeContent = () => {
                             `/placeholder.svg?height=256&width=200&text=${encodeURIComponent(movie.title) || "/placeholder.svg"}`
                           }
                           alt={movie.title}
-                          className="h-full w-full object-cover rounded-md transition-opacity group-hover:opacity-75"
+                          className="h-full w-full object-contain rounded-md transition-opacity group-hover:opacity-75"
                           onError={(e) => {
                             // 이미지 로드 실패 시 플레이스홀더로 대체
                             ;(e.target as HTMLImageElement).src =
@@ -336,7 +291,12 @@ export const HomeContent = () => {
                         >
                           감독: {movie.director || "정보 없음"}
                         </p>
-                        <p className="text-xs text-gray-500">{movie.releaseDate} 개봉</p>
+                        <p
+                          className="text-xs text-gray-500 whitespace-nowrap overflow-hidden text-ellipsis"
+                          title={`${movie.releaseDate} 개봉`}
+                        >
+                          {movie.releaseDate} 개봉
+                        </p>
                         <p
                           className="text-xs text-gray-500 whitespace-nowrap overflow-hidden text-ellipsis"
                           title={`${movie.runtime > 0 ? `${movie.runtime}분` : ""} ${movie.genres ? `| ${movie.genres}` : ""}`}
@@ -348,7 +308,7 @@ export const HomeContent = () => {
                         onClick={() => handleBooking(movie.id)}
                         className="bg-primary text-white text-xs px-3 py-1.5 rounded hover:bg-primary/90 transition-colors flex-shrink-0"
                       >
-                        예매하기
+                        예매
                       </button>
                     </div>
                   </div>
