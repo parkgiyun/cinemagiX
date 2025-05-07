@@ -33,6 +33,9 @@
     --ring: 0 72% 51%;
 
     --radius: 0.25rem;
+
+    /* 사이트 컨테이너 변수 추가 */
+    --site-padding: 2.5rem;
   }
 
   .dark {
@@ -69,23 +72,41 @@
 @layer base {
   * {
     @apply border-border;
+    box-sizing: border-box;
   }
   body {
     @apply bg-background text-foreground;
+    overflow-x: hidden; /* 가로 스크롤 방지 */
+    margin: 0;
+    padding: 0;
+  }
+
+  /* 모든 섹션에 최소 여백 적용 */
+  section,
+  header,
+  footer,
+  main {
+    padding-left: var(--site-padding);
+    padding-right: var(--site-padding);
   }
 }
 
 .site-header {
   border-bottom: 1px solid #e0e0e0;
-  padding: 1rem 0;
+  padding: 1rem var(--site-padding);
   margin-bottom: 2rem;
   width: 100%;
+  position: relative;
+  z-index: 50;
 }
 
 .site-container {
-  width: 1000px;
+  max-width: 1000px;
+  width: 100%;
   margin: 0 auto;
-  padding: 0 1rem;
+  padding-left: var(--site-padding);
+  padding-right: var(--site-padding);
+  box-sizing: border-box; /* 패딩이 너비에 포함되도록 설정 */
 }
 
 .site-name {
@@ -197,9 +218,51 @@
   transform: translateY(-5px);
 }
 
+/* 영화 포스터의 일관된 비율을 유지하기 위한 스타일 */
+.movie-poster {
+  aspect-ratio: 2 / 3;
+  object-fit: cover;
+  width: 100%;
+  height: auto;
+}
+
+/* 홈페이지의 영화 그리드 수정 */
+.movie-grid .movie-card .bg-gray-200 {
+  aspect-ratio: 2 / 3;
+  overflow: hidden;
+}
+
+.movie-grid .movie-card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* 영화 상세 페이지 수정 */
+.poster {
+  width: 300px;
+  height: 450px; /* 2:3 비율 유지 */
+  object-fit: cover;
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* 예매 페이지 수정 */
+.reservation-movie-poster {
+  aspect-ratio: 2 / 3;
+  object-fit: cover;
+  width: 100%;
+  height: auto;
+}
+
+/* 큰 화면 (1200px 이하) 반응형 스타일 */
 @media (max-width: 1200px) {
+  :root {
+    --site-padding: 2.5rem;
+  }
+
   .site-container {
-    width: 100%;
+    max-width: 100%;
   }
 
   .movie-grid {
@@ -207,9 +270,10 @@
   }
 }
 
+/* 중간 화면 (992px 이하) 반응형 스타일 */
 @media (max-width: 992px) {
-  .site-container {
-    width: 100%;
+  :root {
+    --site-padding: 2rem;
   }
 
   .movie-grid {
@@ -217,10 +281,10 @@
   }
 }
 
+/* 태블릿 (768px 이하) 반응형 스타일 */
 @media (max-width: 768px) {
-  .site-container {
-    width: 100%;
-    padding: 0 1rem;
+  :root {
+    --site-padding: 1.5rem;
   }
 
   .featured-movie {
@@ -233,17 +297,36 @@
   }
 }
 
+/* 모바일 (480px 이하) 반응형 스타일 */
 @media (max-width: 480px) {
-  .site-container {
-    width: 100%;
+  :root {
+    --site-padding: 1.25rem;
   }
 
   .featured-movie {
     height: 200px;
   }
 
-  .movie-grid {
+  /* .movie-grid {
     grid-template-columns: repeat(1, 1fr);
+  } */
+
+  .site-name {
+    color: hsl(0, 72%, 51%);
+    font-weight: 700 !important;
+    font-size: 1.5rem;
+    letter-spacing: 0.05em;
+  }
+
+  /* 섹션 제목 크기 조정 추가 */
+  section h2.text-3xl {
+    font-size: 1.5rem; /* 24px */
+    line-height: 2rem; /* 32px */
+  }
+
+  /* 모바일 메뉴 스타일 */
+  .site-header .nav-link {
+    margin-left: 0;
   }
 }
 
