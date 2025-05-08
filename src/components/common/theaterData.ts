@@ -30,5 +30,5 @@ export const theaterAddresses = {
   }
   
   // 티켓 가격 정보
-  export const TICKET_PRICE = 12000 // 일반 상영관 기본 가격
+  export const TICKET_PRICE = 10000 // 일반 상영관 기본 가격
   

@@ -107,12 +107,11 @@ export const updateUserProfile = async (
     if (currentPassword === value) {
       throw new Error("현재 비밀번호와 새 비밀번호가 동일합니다.")
     }
-    
+
     // 비밀번호 변경 시 새 비밀번호 확인
     if (field === "password" && !value) {
       throw new Error("새 비밀번호가 필요합니다.")
     }
-
 
     console.log("업데이트 요청 준비:", {
       field,
@@ -240,12 +239,12 @@ export const deleteUserAccount = async (password: string): Promise<{ success: bo
 // 이메일 인증 코드 전송 함수
 export const sendVerificationCode = async (email: string): Promise<{ success: boolean; message: string }> => {
   // 이메일 형식 검증
-  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
   if (!email || !emailRegex.test(email)) {
     return {
       success: false,
-      message: "이메일 형식이 올바르지 않습니다."
-    };
+      message: "이메일 형식이 올바르지 않습니다.",
+    }
   }
 
   try {
@@ -254,9 +253,7 @@ export const sendVerificationCode = async (email: string): Promise<{ success: bo
     console.log("인증 코드 전송 응답:", response.data)
 
     // 백엔드 응답이 문자열 "SUCCESS"인 경우 처리
-    if (
-      response.data === "SUCCESS"
-    ) {
+    if (response.data === "SUCCESS") {
       return {
         success: true,
         message: "인증 코드가 이메일로 전송되었습니다.",
@@ -294,9 +291,7 @@ export const verifyEmailCode = async (email: string, code: string): Promise<{ su
     console.log("인증 코드 확인 응답:", response.data)
 
     // 백엔드 응답이 문자열 "SUCCESS"인 경우 처리
-    if (
-      response.data === "SUCCESS"
-    ) {
+    if (response.data === "SUCCESS") {
       return {
         success: true,
         message: "이메일 인증이 완료되었습니다.",
@@ -341,21 +336,39 @@ export const getUserTickets = async (userId: number): Promise<any> => {
       throw new Error("인증 토큰이 없습니다.")
     }
 
-    const response = await axios.post(
-      "http://localhost:8080/api/v1/detail/retrieve/ticket?user_id=" + userId,
-      {
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "*/*",
-          Authorization: `Bearer ${token}`,
-        },
+    const response = await axios.post("http://localhost:8080/api/v1/detail/retrieve/ticket?user_id=" + userId, {
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "*/*",
+        Authorization: `Bearer ${token}`,
       },
-    )
+    })
 
     console.log("예매 내역 조회 응답:", response.data)
 
     if (response.data.errorCode === "SUCCESS") {
-      return response.data.ticketList || []
+      // 티켓 데이터에 orderId 필드 추가
+      const tickets = response.data.ticketList || []
+
+      // 티켓을 주문 ID로 그룹화하기 위한 맵 생성
+      const orderMap = new Map()
+
+      // 각 티켓에 orderId 필드 추가
+      tickets.forEach((ticket: any) => {
+        // 주문 ID가 없는 경우 생성
+        if (!ticket.orderId) {
+          // 같은 상영 ID와 예매 시간을 가진 티켓은 같은 주문으로 간주
+          const orderKey = `${ticket.screening?.id || ""}_${ticket.createdAt || ""}`
+
+          if (!orderMap.has(orderKey)) {
+            orderMap.set(orderKey, ticket.id)
+          }
+
+          ticket.orderId = orderMap.get(orderKey)
+        }
+      })
+
+      return tickets
     }
 
     return []

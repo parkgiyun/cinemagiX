@@ -70,7 +70,6 @@ const BookingInfo: React.FC<BookingInfoProps> = ({
   const [regionInfo, setRegionInfo] = useState<string>("지역을 선택해 주세요.")
   const [startTimeIndex, setStartTimeIndex] = useState<number>(-1)
   // 좌석 정보를 로컬 스토리지에서 가져오는 로직 추가
-  // 컴포넌트 시작 부에 상태 추가 (약 40줄 근처)
   const [seatPositions, setSeatPositions] = useState<{ id: number; position: string }[]>([])
   const [paymentStarted, setPaymentStarted] = useState(false)
   const [paymentSuccess, setPaymentSuccess] = useState(false)

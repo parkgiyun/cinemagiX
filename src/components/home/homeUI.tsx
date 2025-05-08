@@ -9,6 +9,8 @@ import type { Movie } from "../common/typeReserve"
 import { useSelectedMovieForReservation } from "@/app/redux/reduxService"
 import { Header } from "../common/Header"
 
+import { RecommendedMovies } from "../recommend/RecommendedMovies"
+
 export const HomeContent = () => {
   const router = useRouter()
   const [isLoggedIn, setIsLoggedIn] = useState(false)
@@ -204,8 +206,8 @@ export const HomeContent = () => {
       {/* Main Content */}
       <main className="flex-1">
         <div className="site-container py-8">
-          <section className="mb-12">
-            <h2 className="text-3xl font-bold mb-4">AI가 추천하는 영화</h2> {/* 영상말고 포스터로 변경? */}
+          {/* <section className="mb-12">
+            <h2 className="text-3xl font-bold mb-4">AI가 추천하는 영화</h2> 
             <div className="featured-movie bg-gray-100 flex items-center justify-center">
               <img
                 src="/placeholder.svg?height=400&width=1200"
@@ -213,6 +215,9 @@ export const HomeContent = () => {
                 className="w-full h-full object-cover"
               />
             </div>
+          </section> */}
+          <section className="mb-12">
+            <RecommendedMovies />
           </section>
 
           <section>
@@ -264,7 +269,7 @@ export const HomeContent = () => {
                           className="h-full w-full object-contain rounded-md transition-opacity group-hover:opacity-75"
                           onError={(e) => {
                             // 이미지 로드 실패 시 플레이스홀더로 대체
-                            ;(e.target as HTMLImageElement).src =
+                            ; (e.target as HTMLImageElement).src =
                               `/placeholder.svg?height=256&width=200&text=${encodeURIComponent(movie.title)}`
                           }}
                         />

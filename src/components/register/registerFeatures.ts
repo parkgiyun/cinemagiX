@@ -7,7 +7,7 @@ import { apiService } from "../common/apiService"
  */
 export const sendVerificationCode = async (email: string) => {
   try {
-    return await apiService("/v1/email/send", { email })
+    return await apiService("/v1/user/verifyEmail", { email })
   } catch (error) {
     throw error
   }
@@ -21,7 +21,7 @@ export const sendVerificationCode = async (email: string) => {
  */
 export const verifyEmailCode = async (email: string, code: string) => {
   try {
-    const response = await apiService("/v1/email/check", {
+    const response = await apiService("/v1/user/check", {
       email,
       authnum: code,
     })

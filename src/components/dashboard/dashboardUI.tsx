@@ -70,7 +70,7 @@ export const DashboardContent = ({ user, onLogout, onUpdateUser }: DashboardCont
   const [verificationSent, setVerificationSent] = useState(false)
   const [verificationSuccess, setVerificationSuccess] = useState(false)
   const [verificationCode, setVerificationCode] = useState("")
-  const [verificationLoading, setVerificationLoading] = useState(false)
+  const [verificationLoading, setLoadingVerification] = useState(false)
 
   // Redux에서 지역 및 극장 정보 가져오기
   const { regionList } = useRegion()
@@ -88,7 +88,7 @@ export const DashboardContent = ({ user, onLogout, onUpdateUser }: DashboardCont
       return
     }
 
-    setVerificationLoading(true)
+    setLoadingVerification(true)
     setSuccess("")
     setError("")
 
@@ -103,7 +103,7 @@ export const DashboardContent = ({ user, onLogout, onUpdateUser }: DashboardCont
     } catch (err: any) {
       setError(err.message || "인증 코드 전송 중 오류가 발생했습니다.")
     } finally {
-      setVerificationLoading(false)
+      setLoadingVerification(false)
     }
   }
 
@@ -114,7 +114,7 @@ export const DashboardContent = ({ user, onLogout, onUpdateUser }: DashboardCont
       return
     }
 
-    setVerificationLoading(true)
+    setLoadingVerification(true)
     setSuccess("")
     setError("")
 
@@ -132,7 +132,7 @@ export const DashboardContent = ({ user, onLogout, onUpdateUser }: DashboardCont
       console.error("인증 코드 확인 중 오류:", err)
       setError(err.message || "인증 코드 확인 중 오류가 발생했습니다.")
     } finally {
-      setVerificationLoading(false)
+      setLoadingVerification(false)
     }
   }
 
@@ -284,25 +284,45 @@ export const DashboardContent = ({ user, onLogout, onUpdateUser }: DashboardCont
 
         const tickets = await getUserTickets(user.user_id)
 
-        // API 응답 데이터를 UI에 맞는 형식으로 변환
-        const formattedTickets = tickets.map((ticket: any) => {
-          const screening = ticket.screening || {}
+        // 티켓을 주문 ID 기준으로 그룹화
+        const ticketGroups: { [key: string]: any[] } = {}
+
+        // 티켓을 주문 ID 기준으로 그룹화
+        tickets.forEach((ticket: any) => {
+          const orderId = ticket.orderId || ticket.id
+          if (!ticketGroups[orderId]) {
+            ticketGroups[orderId] = []
+          }
+          ticketGroups[orderId].push(ticket)
+        })
+
+        // 그룹화된 티켓을 포맷팅
+        const formattedTickets = Object.values(ticketGroups).map((ticketGroup) => {
+          // 그룹의 첫 번째 티켓에서 공통 정보 추출
+          const firstTicket = ticketGroup[0]
+          const screening = firstTicket.screening || {}
           const movie = screening.movie || {}
           const room = screening.room || {}
           const spot = room.spot || {}
           const region = spot.region || {}
 
+          // 모든 좌석 정보 수집
+          const seats = ticketGroup.map((ticket: any) => `${ticket.horizontal.toUpperCase()}${ticket.vertical}`)
+
+          // 총 가격 계산
+          const totalPrice = ticketGroup.reduce((sum: number, ticket: any) => sum + (ticket.price || 0), 0)
+
           return {
-            id: ticket.id,
+            id: firstTicket.id,
             movieTitle: movie.title || "제목 없음",
             theater: `${region.name} ${spot.name}점`,
             screen: `${room.roomnumber}관`,
             date: screening.date || "날짜 정보 없음",
             time: screening.start ? screening.start.substring(0, 5) : "시간 정보 없음",
-            seats: [`${ticket.horizontal.toUpperCase()}${ticket.vertical}`],
-            price: ticket.price || 0,
+            seats: seats,
+            price: totalPrice,
             status: "confirmed", // 기본값은 confirmed
-            orderId: ticket.id, // 취소 시 필요한 주문 ID
+            orderId: firstTicket.orderId || firstTicket.id, // 취소 시 필요한 주문 ID
             posterImage: movie.posterImage || "",
           }
         })

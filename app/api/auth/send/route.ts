@@ -10,7 +10,7 @@ export async function POST(request: Request) {
 
     try {
       const springResponse = await axios.post(
-        "http://localhost:8080/api/v1/email/send",
+        "http://localhost:8080/api/v1/user/verifyEmail",
         { email },
         {
           headers: {

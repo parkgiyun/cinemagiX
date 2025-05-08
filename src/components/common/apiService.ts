@@ -201,7 +201,7 @@ export const createOrder = async (orderData: { userId: number; screeningId: numb
     console.error("주문 생성 오류:", err)
 
     if (axios.isAxiosError(err)) {
-      throw new Error(err.response?.data?.message || "주문 생성 중 오류가 발생했습니다. 서버 연결을 확인해주세요.")
+      throw new Error(err.response?.data?.message || "상영 시작 30분 전 이후에는 예매할 수 없습니다.")
     } else if (err instanceof Error) {
       throw new Error(err.message)
     } else {
@@ -413,3 +413,34 @@ export const checkPaymentStatus = async (orderId: number) => {
     }
   }
 }
+
+// AI 추천 영화 불러오기 API
+export const fetchAIRecommendedMovies = async (userId: number) => {
+  if (!userId) return [];
+
+  try {
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+      Accept: "*/*",
+    };
+
+    const response = await axios.get(`${API_BASE_URL}/v1/AIRecommand/recommended?userId=${userId}`, {
+      headers,
+      withCredentials: true,
+    });
+
+    return response.data;
+  } catch (err: unknown) {
+    console.error("AI 추천 영화 가져오기 오류:", err);
+
+    if (axios.isAxiosError(err)) {
+      throw new Error(
+        err.response?.data?.message || "AI 추천 영화를 불러오는 중 오류가 발생했습니다."
+      );
+    } else if (err instanceof Error) {
+      throw new Error(err.message);
+    } else {
+      throw new Error("알 수 없는 오류가 발생했습니다.");
+    }
+  }
+};
