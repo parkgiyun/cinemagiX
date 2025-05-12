@@ -269,7 +269,7 @@ export const HomeContent = () => {
                           className="h-full w-full object-contain rounded-md transition-opacity group-hover:opacity-75"
                           onError={(e) => {
                             // 이미지 로드 실패 시 플레이스홀더로 대체
-                            ; (e.target as HTMLImageElement).src =
+                            ;(e.target as HTMLImageElement).src =
                               `/placeholder.svg?height=256&width=200&text=${encodeURIComponent(movie.title)}`
                           }}
                         />

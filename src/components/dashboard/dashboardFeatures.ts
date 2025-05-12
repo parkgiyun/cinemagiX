@@ -336,13 +336,16 @@ export const getUserTickets = async (userId: number): Promise<any> => {
       throw new Error("인증 토큰이 없습니다.")
     }
 
-    const response = await axios.post("http://localhost:8080/api/v1/detail/retrieve/ticket?user_id=" + userId, {
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "*/*",
-        Authorization: `Bearer ${token}`,
+    const response = await axios.post(
+      "https://hs-cinemagix.duckdns.org/api/v1/detail/retrieve/ticket?user_id=" + userId,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "*/*",
+          Authorization: `Bearer ${token}`,
+        },
       },
-    })
+    )
 
     console.log("예매 내역 조회 응답:", response.data)
 

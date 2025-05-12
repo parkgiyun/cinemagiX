@@ -3,7 +3,7 @@ import axios from "axios"
 
 export async function GET() {
   try {
-    const response = await axios.get("http://localhost:8080/api/v1/movies/daily", {
+    const response = await axios.get("https://hs-cinemagix.duckdns.org/api/v1/movies/daily", {
       headers: {
         "Content-Type": "application/json",
         Accept: "*/*",
@@ -24,4 +24,3 @@ export async function GET() {
     return NextResponse.json({ error: "영화 데이터를 가져오는데 실패했습니다." }, { status: 500 })
   }
 }
-

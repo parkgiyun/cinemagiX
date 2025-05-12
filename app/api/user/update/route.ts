@@ -42,11 +42,11 @@ export async function POST(request: Request) {
     // 필드에 따라 다른 API 엔드포인트 사용
     let apiEndpoint = ""
     if (field === "username") {
-      apiEndpoint = "http://localhost:8080/api/v1/detail/change/username"
+      apiEndpoint = "https://hs-cinemagix.duckdns.org/api/v1/detail/change/username"
     } else if (field === "password") {
-      apiEndpoint = "http://localhost:8080/api/v1/detail/change/password"
+      apiEndpoint = "https://hs-cinemagix.duckdns.org/api/v1/detail/change/password"
     } else if (field === "email") {
-      apiEndpoint = "http://localhost:8080/api/v1/detail/change/email"
+      apiEndpoint = "https://hs-cinemagix.duckdns.org/api/v1/detail/change/email"
     } else {
       return NextResponse.json({ success: false, message: "지원하지 않는 필드입니다." }, { status: 400 })
     }
@@ -84,4 +84,3 @@ export async function POST(request: Request) {
     )
   }
 }
-

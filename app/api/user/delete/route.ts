@@ -36,7 +36,7 @@ export async function POST(request: Request) {
     })
 
     // 스프링부트 API 호출
-    const springResponse = await axios.post("http://localhost:8080/api/v1/user/deleteAccount", requestData, {
+    const springResponse = await axios.post("https://hs-cinemagix.duckdns.org/api/v1/user/deleteAccount", requestData, {
       headers: {
         "Content-Type": "application/json",
         Accept: "*/*",
@@ -61,4 +61,3 @@ export async function POST(request: Request) {
     )
   }
 }
-

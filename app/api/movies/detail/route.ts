@@ -13,7 +13,7 @@ export async function GET(request: Request) {
     // 실제 구현에서는 데이터베이스나 다른 방식으로 영화 정보를 가져와야 합니다.
     // 여기서는 예시로 직접 API 호출을 통해 영화 목록을 가져옵니다.
 
-    const response = await fetch("http://localhost:8080/api/v1/movies/daily", {
+    const response = await fetch("https://hs-cinemagix.duckdns.org/api/v1/movies/daily", {
       headers: {
         "Content-Type": "application/json",
         Accept: "*/*",
