@@ -69,7 +69,7 @@ type MovieRunningDetail =
       roomIds: number[]
       screeningIds: number[]
       startTimes: string[]
-      tmdbMovieId: 696506
+      tmdbMovieId: number
     }
   | undefined
 export const useMovieRunningDetail = () => {

@@ -94,7 +94,7 @@ type movieRunningDetail =
       roomIds: number[]
       screeningIds: number[]
       startTimes: string[]
-      tmdbMovieId: 696506
+      tmdbMovieId: number
     }
   | undefined
 
