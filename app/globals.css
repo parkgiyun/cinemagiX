@@ -1,0 +1,383 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 0 0% 10%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 10%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 10%;
+
+    --primary: 0 72% 51%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 0 0% 96%;
+    --secondary-foreground: 0 0% 10%;
+
+    --muted: 0 0% 96%;
+    --muted-foreground: 0 0% 45%;
+
+    --accent: 0 0% 96%;
+    --accent-foreground: 0 0% 10%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 0 0% 90%;
+    --input: 0 0% 90%;
+    --ring: 0 72% 51%;
+
+    --radius: 0.25rem;
+  }
+
+  .dark {
+    --background: 0 0% 10%;
+    --foreground: 0 0% 98%;
+
+    --card: 0 0% 10%;
+    --card-foreground: 0 0% 98%;
+
+    --popover: 0 0% 10%;
+    --popover-foreground: 0 0% 98%;
+
+    --primary: 0 72% 51%;
+    --primary-foreground: 0 0% 98%;
+
+    --secondary: 0 0% 15%;
+    --secondary-foreground: 0 0% 98%;
+
+    --muted: 0 0% 15%;
+    --muted-foreground: 0 0% 65%;
+
+    --accent: 0 0% 15%;
+    --accent-foreground: 0 0% 98%;
+
+    --destructive: 0 62% 30%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 0 0% 20%;
+    --input: 0 0% 20%;
+    --ring: 0 72% 51%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+.site-header {
+  border-bottom: 1px solid #e0e0e0;
+  padding: 1rem 0;
+  margin-bottom: 2rem;
+  width: 100%;
+}
+
+.site-container {
+  width: 1000px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+.site-name {
+  color: hsl(0, 72%, 51%);
+  font-weight: 700 !important;
+  font-size: 2rem;
+  letter-spacing: 0.05em;
+}
+
+.nav-link {
+  font-size: 0.75rem;
+  color: #666;
+  margin-left: 1.5rem;
+  font-weight: 500;
+}
+
+.nav-link.active {
+  color: hsl(0, 72%, 51%);
+  font-weight: 700;
+}
+
+/* 헤더 내 요소들에 볼드체 적용 */
+.site-header button,
+.site-header a,
+.site-header span {
+  font-weight: 600;
+}
+
+.site-header .text-primary {
+  font-weight: 700;
+}
+
+.site-header .bg-primary {
+  font-weight: 700;
+}
+
+.auth-container {
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.auth-title {
+  font-weight: 600;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+/* 모바일 화면에서는 작은 폰트 크기 적용 */
+@media (max-width: 480px) {
+  .auth-title {
+    font-size: 1.5rem; 
+  }
+}
+
+/* 480px 이상 화면에서는 큰 폰트 크기 적용 */
+@media (min-width: 480px) {
+  .auth-title {
+    font-size: 2rem;
+  }
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.form-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.form-input {
+  padding: 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 0.25rem;
+}
+
+.auth-button {
+  background-color: hsl(0, 72%, 51%);
+  color: white;
+  padding: 0.75rem;
+  border: none;
+  border-radius: 0.25rem;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 1rem;
+}
+
+.auth-link {
+  color: hsl(0, 72%, 51%);
+  text-decoration: underline;
+  font-size: 0.875rem;
+}
+
+.featured-movie {
+  height: 400px;
+  width: 100%;
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+.movie-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 1.5rem;
+}
+
+.movie-card {
+  transition: transform 0.2s;
+}
+
+.movie-card:hover {
+  transform: translateY(-5px);
+}
+
+/* 큰 화면 (1200px 이하) 반응형 스타일 */
+@media (max-width: 1200px) {
+  :root {
+    --site-padding: 2.5rem;
+  }
+
+  .site-container {
+    max-width: 100%;
+  }
+
+  .movie-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* 중간 화면 (992px 이하) 반응형 스타일 */
+@media (max-width: 992px) {
+  :root {
+    --site-padding: 2rem;
+  }
+
+  .movie-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* 태블릿 (768px 이하) 반응형 스타일 */
+@media (max-width: 768px) {
+  :root {
+    --site-padding: 1.5rem;
+  }
+
+  .featured-movie {
+    height: 300px;
+  }
+
+  .movie-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
+}
+
+/* 모바일 (480px 이하) 반응형 스타일 */
+@media (max-width: 480px) {
+  :root {
+    --site-padding: 1.25rem;
+  }
+
+  .featured-movie {
+    height: 200px;
+  }
+
+  .movie-grid {
+    grid-template-columns: repeat(1, 1fr);
+  }
+
+  .site-name {
+    font-size: 1.5rem;
+  }
+
+  section h2.text-3xl {
+    font-size: 1.5rem; /* 24px */
+    line-height: 2rem; /* 32px */
+  }
+
+  /* 모바일 메뉴 스타일 */
+  .site-header .nav-link {
+    margin-left: 0;
+  }
+}
+
+/* 햄버거 메뉴 스타일 */
+.mobile-menu-button {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.mobile-menu {
+  display: none;
+  background-color: white;
+  padding: 0.75rem 0;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.mobile-menu .site-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.mobile-menu .nav-link {
+  margin-left: 0;
+  text-align: center;
+  padding: 0.5rem 0;
+}
+
+.mobile-menu .nav-link.with-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mobile-menu .nav-link.with-icon svg {
+  margin-right: 0.5rem;
+  width: 1rem;
+  height: 1rem;
+}
+
+/* 모바일 메뉴 토글 스크립트를 위한 클래스 */
+.mobile-menu.active {
+  display: block;
+}
+
+@media (max-width: 640px) {
+  .mobile-menu-button {
+    display: flex;
+  }
+
+  .desktop-nav {
+    display: none;
+  }
+}
+
+/* 버튼 글씨체 볼드 적용 */
+button {
+  font-weight: 600;
+}
+
+.btn,
+.button,
+[type="button"],
+[type="submit"],
+[type="reset"] {
+  font-weight: 600;
+}
+
+/* shadcn 버튼 컴포넌트에 볼드 적용 */
+.btn-primary,
+.btn-secondary,
+.btn-accent,
+.btn-ghost,
+.btn-link {
+  font-weight: 600;
+}
+
+/* 기타 중요 UI 요소 볼드 적용 */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-weight: 700;
+}
+
+.font-bold {
+  font-weight: 700 !important;
+}
+
+.font-medium {
+  font-weight: 600 !important;
+}
+
+.font-semibold {
+  font-weight: 600 !important;
+}
