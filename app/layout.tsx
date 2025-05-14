@@ -7,8 +7,8 @@ import ReduxProvider from "@/app/reduxLayout"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "Hansung Movie Site",
-  description: "HANSUNG MOVIE SITE",
+  title: "CinemagiX",
+  description: "CinemagiX - 영화 예매 서비스",
 }
 
 export default function RootLayout({
@@ -24,4 +24,3 @@ export default function RootLayout({
     </html>
   )
 }
-
