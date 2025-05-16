@@ -6,8 +6,6 @@ import ReduxProvider from "@/app/reduxLayout"
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import { Analytics } from "@vercel/analytics/next"
 
-<Analytics />
-
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
@@ -24,9 +22,9 @@ export default function RootLayout({
     <html lang="ko" suppressHydrationWarning>
       <body className={inter.className} suppressHydrationWarning>
         <ReduxProvider>{children}</ReduxProvider>
+        <SpeedInsights />
+        <Analytics />
       </body>
     </html>
   )
 }
-
-<SpeedInsights />
