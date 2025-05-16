@@ -66,9 +66,10 @@ export const RegisterForm = ({
   }
 
   return (
-    <div className="min-h-screen flex flex-col w-full">
+    <div className="min-h-screen flex flex-col w-full" style={{ marginTop: "-16px" }}> {/* homeUI와 맞추기 위한 -16px */}
       {/* 공통 헤더 사용 */}
       <Header activePage="register" />
+
       <div className="flex-1 flex items-center justify-center p-4">
         <div className="auth-container bg-white p-8 rounded-lg shadow-sm">
           <h2 className="auth-title">회원가입</h2>
