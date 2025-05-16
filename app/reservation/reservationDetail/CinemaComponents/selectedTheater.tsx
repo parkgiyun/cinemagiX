@@ -174,9 +174,8 @@ const SelectedTheater: React.FC<SelectedTheaterProps> = ({
     // 현재 API 호출 파라미터 생성
     const currentParams = `${selectedTheater}_${selectedDate}_${selectedMovie}`
 
-    // 이전과 동일한 파라미터로 이미 API를 호출 중이면 중복 호출 방지
-    // 하지만 이미 완료된 호출이라도 영화를 다시 선택한 경우에는 재호출 허용
-    if (apiCallInProgress.current) {
+    // 이전과 동일한 파라미터로 이미 API를 호출 중이거나 완료했으면 중복 호출 방지
+    if (apiCallInProgress.current || lastApiParams.current === currentParams) {
       return
     }
 
