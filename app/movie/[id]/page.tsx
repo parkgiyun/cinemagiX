@@ -156,7 +156,7 @@ export default function MovieDetailPage() {
     setHoverRating(newRating)
   }
 
-  // 4. 리뷰 저장 함수 수정 (handleReviewSubmit 함수 전체 교체)
+  // 4. 리뷰 저장 함수 수정 - API 엔드포인트와 요청 형식 수정
   const handleReviewSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
@@ -199,11 +199,13 @@ export default function MovieDetailPage() {
 
     try {
       setReviewSubmitting(true)
+      setReviewError("") // 오류 메시지 초기화
 
       // API를 통해 DB에 리뷰 저장
       const token = localStorage.getItem("token") || sessionStorage.getItem("token")
       const movieId = movie.id || Number(localMovieId)
 
+      // 서버에서 기대하는 형식으로 데이터 구성
       const reviewData = {
         rating: userRating,
         review: reviewText,
@@ -214,25 +216,51 @@ export default function MovieDetailPage() {
 
       console.log("저장할 리뷰 데이터:", reviewData)
 
-      const response = await fetch("https://hs-cinemagix.duckdns.org/api/v1/review/reviews", {
+      // 요청 헤더에 Content-Type과 Authorization 설정
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+      }
+
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`
+      }
+
+      // 요청 옵션 구성
+      const requestOptions = {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: token ? `Bearer ${token}` : "",
-        },
+        headers: headers,
         body: JSON.stringify(reviewData),
-      })
+      }
 
-      const responseData = await response.json()
-      console.log("서버 응답:", response.status, responseData)
+      console.log("API 요청 옵션:", requestOptions)
 
+      // 서버에 요청 보내기
+      const response = await fetch("https://hs-cinemagix.duckdns.org/api/v1/review/reviews", requestOptions)
+
+      // 응답 로깅
+      console.log("서버 응답 상태:", response.status)
+
+      // 응답 본문 파싱 (JSON이 아닐 경우 텍스트로 처리)
+      let responseData
+      const contentType = response.headers.get("content-type")
+      if (contentType && contentType.includes("application/json")) {
+        responseData = await response.json()
+      } else {
+        responseData = await response.text()
+      }
+
+      console.log("서버 응답 데이터:", responseData)
+
+      // 응답 상태 확인
       if (!response.ok) {
-        throw new Error(responseData.message || "리뷰 저장에 실패했습니다.")
+        throw new Error(
+          typeof responseData === "string" ? responseData : responseData.message || "리뷰 저장에 실패했습니다.",
+        )
       }
 
       // UI에 표시할 새 리뷰 객체 생성
       const newReview: Review = {
-        id: responseData.id || Date.now(), // 서버에서 반환한 ID 사용
+        id: typeof responseData === "object" && responseData.id ? responseData.id : Date.now(),
         username: username,
         rating: userRating,
         text: reviewText,
@@ -247,13 +275,17 @@ export default function MovieDetailPage() {
       // 입력 필드 초기화
       setReviewText("")
       setUserRating(0)
+      setHoverRating(0)
       setIsSpoiler(false)
 
       // 성공 메시지 표시
       alert("리뷰가 등록되었습니다.")
+
+      // 리뷰 목록 새로고침
+      fetchReviews(movieId)
     } catch (error) {
       console.error("리뷰 저장 오류:", error)
-      alert("리뷰 저장 중 오류가 발생했습니다. 다시 시도해주세요.")
+      setReviewError(error instanceof Error ? error.message : "리뷰 저장 중 오류가 발생했습니다. 다시 시도해주세요.")
     } finally {
       setReviewSubmitting(false)
     }
