@@ -1,3 +1,4 @@
+// Movie 타입에 boxOfficeRank 필드 추가
 export type Movie = {
   id: number
   tmdbMovieId: number
@@ -9,6 +10,7 @@ export type Movie = {
   genres: string
   releaseDate: string
   runtime: number
+  boxOfficeRank?: number // 박스오피스 순위 필드 추가
 }
 
 export type Region = {

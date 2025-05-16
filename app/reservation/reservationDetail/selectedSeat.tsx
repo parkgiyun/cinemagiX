@@ -103,7 +103,7 @@ const SelectedSeat: React.FC<SelectedSeatProps> = ({ setMemoActiveStep, setMemoS
       setMemoActiveStep(3)
     } catch (error) {
       console.error("주문 생성 중 오류 발생:", error)
-      alert("상영 시간 30분 전 이후에는 예매할 수 없습니다.") // 에러?
+      alert("상영 시간 30분 전 이후에는 예매할 수 없습니다.")
     }
   }
   const handleReSeat = () => {

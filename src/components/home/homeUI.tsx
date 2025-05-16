@@ -92,6 +92,7 @@ export const HomeContent = () => {
             genres: movie.genres || "",
             releaseDate: movie.releaseDate || movie.openDt || "개봉일 정보 없음",
             runtime: movie.runtime || 0,
+            boxOfficeRank: movie.boxOfficeRank || 999, // boxOfficeRank 필드 사용, 없으면 999로 설정
           }
         })
 
@@ -172,8 +173,13 @@ export const HomeContent = () => {
         }
       })
     } else {
-      // 인기순은 추후 관객 순으로 정렬 / 현재는 임의로 id 기준으로 정렬
-      sortedMovies.sort((a, b) => a.id - b.id)
+      // 인기순 정렬을 boxOfficeRank 기준으로 변경
+      sortedMovies.sort((a, b) => {
+        // boxOfficeRank가 낮을수록 순위가 높음
+        const rankA = a.boxOfficeRank || 999
+        const rankB = b.boxOfficeRank || 999
+        return rankA - rankB
+      })
     }
 
     setMovies(sortedMovies)
