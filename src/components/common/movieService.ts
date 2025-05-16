@@ -32,7 +32,7 @@ async function getLocalMovie(id: string) {
 
   try {
     // daily API 호출하여 모든 영화 목록 가져오기
-    const response = await fetch("/api/movies/daliy")
+    const response = await fetch("/api/movies/daily")
 
     if (!response.ok) {
       throw new Error(`영화 목록 가져오기 실패: ${response.status}`)
