@@ -92,7 +92,7 @@ export const HomeContent = () => {
             genres: movie.genres || "",
             releaseDate: movie.releaseDate || movie.openDt || "개봉일 정보 없음",
             runtime: movie.runtime || 0,
-            boxOfficeRank: movie.boxOfficeRank || movie.rank || 999, // boxOfficeRank 또는 rank 필드 사용, 없으면 999로 설정
+            boxOfficeRank: movie.boxOfficeRank || 999, // boxOfficeRank 필드 사용, 없으면 999로 설정
           }
         })
 
