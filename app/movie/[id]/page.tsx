@@ -144,7 +144,7 @@ export default function MovieDetailPage() {
   // Handlers
   // 2. 별점 선택 핸들러 수정 - 0.5 단위 지원
   const handleRatingClick = (rating: number, isHalf: boolean) => {
-    // 반개 별점�� 경우 0.5 빼기
+    // 반개 별점 경우 0.5 빼기
     const newRating = isHalf ? rating - 0.5 : rating
     setUserRating(newRating)
   }
