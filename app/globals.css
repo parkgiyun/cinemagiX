@@ -33,6 +33,7 @@
     --ring: 0 72% 51%;
 
     --radius: 0.25rem;
+    --site-padding: 1rem;
   }
 
   .dark {
@@ -76,14 +77,16 @@
 }
 
 .site-header {
+  width: 100%;
   border-bottom: 1px solid #e0e0e0;
   padding: 1rem 0;
   margin-bottom: 2rem;
-  width: 100%;
+  position: relative;
 }
 
 .site-container {
-  width: 1000px;
+  width: 100%;
+  max-width: 1000px;
   margin: 0 auto;
   padding: 0 1rem;
 }
@@ -138,7 +141,7 @@
 /* 모바일 화면에서는 작은 폰트 크기 적용 */
 @media (max-width: 480px) {
   .auth-title {
-    font-size: 1.5rem; 
+    font-size: 1.5rem;
   }
 }
 
@@ -335,6 +338,10 @@
 
   .desktop-nav {
     display: none;
+  }
+
+  .site-container {
+    padding: 0 1rem;
   }
 }
 
