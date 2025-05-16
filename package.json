@@ -16,11 +16,8 @@
     "@radix-ui/react-slot": "^1.0.2",
     "@reduxjs/toolkit": "^2.6.1",
     "@tailwindcss/postcss": "^4.0.15",
-<<<<<<< HEAD
     "@vercel/analytics": "^1.5.0",
     "@vercel/speed-insights": "^1.2.0",
-=======
->>>>>>> 805692b7ead5d58b2899817c2b5b789470fc1bbf
     "axios": "^1.6.7",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.0",
