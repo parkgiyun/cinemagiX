@@ -3,6 +3,7 @@ import type { Metadata } from "next"
 import { Inter } from "next/font/google"
 import "./globals.css"
 import ReduxProvider from "@/app/reduxLayout"
+import SessionTimer from "@/src/components/common/SessionTimer"
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import { Analytics } from "@vercel/analytics/next"
 
@@ -21,7 +22,9 @@ export default function RootLayout({
   return (
     <html lang="ko" suppressHydrationWarning>
       <body className={inter.className} suppressHydrationWarning>
-        <ReduxProvider>{children}</ReduxProvider>
+        <ReduxProvider>
+            <SessionTimer timeoutMinutes={10}>{children}</SessionTimer> {/* 10분 후 세션 타임아웃 */ }
+        </ReduxProvider>
         <SpeedInsights />
         <Analytics />
       </body>
