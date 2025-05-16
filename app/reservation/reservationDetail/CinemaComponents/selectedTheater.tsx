@@ -120,6 +120,12 @@ const SelectedTheater: React.FC<SelectedTheaterProps> = ({
   }
 
   const handleMovieSelect = (movieId: number) => {
+    // 같은 영화를 다시 선택한 경우 상영 정보를 유지
+    if (selectedMovie === movieId) {
+      scrollAni(movieListRef)
+      return
+    }
+
     setSelectedMovie(movieId)
     setSelectedScreen(-1)
     setFinishTimes([])
@@ -154,6 +160,10 @@ const SelectedTheater: React.FC<SelectedTheaterProps> = ({
     setMemoActiveStep(2)
   }
 
+  // 컴포넌트 함수 내부 상단에 추가
+  const apiCallInProgress = useRef(false)
+  const lastApiParams = useRef<string>("")
+
   useEffect(() => {
     if (selectedDate === "날짜선택" || selectedMovie === -1 || selectedTheater === -1) {
       // 필수 선택 사항이 없으면 상영 정보 초기화
@@ -161,10 +171,29 @@ const SelectedTheater: React.FC<SelectedTheaterProps> = ({
       return
     }
 
+    // 현재 API 호출 파라미터 생성
+    const currentParams = `${selectedTheater}_${selectedDate}_${selectedMovie}`
+
+    // 이전과 동일한 파라미터로 이미 API를 호출 중이면 중복 호출 방지
+    // 하지만 이미 완료된 호출이라도 영화를 다시 선택한 경우에는 재호출 허용
+    if (apiCallInProgress.current) {
+      return
+    }
+
     const fetchData = async () => {
       try {
+        // API 호출 시작 표시
+        apiCallInProgress.current = true
+        lastApiParams.current = currentParams
+
         const theather = findTheaterId(selectedTheater)
-        if (theather == undefined) return // theather가 undefined일 경우 처리
+        if (theather == undefined) {
+          apiCallInProgress.current = false
+          return
+        }
+
+        console.log(`상영 정보 로드 시작: 극장=${theather.name}, 날짜=${selectedDate}, 영화=${selectedMovie}`)
+
         const data: MovieRunningDetail[] = await fetchSpotAndDate(theather.name, selectedDate, selectedMovie)
 
         if (data && data.length > 0) {
@@ -186,6 +215,9 @@ const SelectedTheater: React.FC<SelectedTheaterProps> = ({
         console.error("Error fetching data:", error)
         // 에러 발생 시 상영 정보 초기화
         updateMovieRunningDetail(undefined)
+      } finally {
+        // API 호출 완료 표시
+        apiCallInProgress.current = false
       }
     }
 
