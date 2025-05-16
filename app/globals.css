@@ -263,11 +263,7 @@
   }
 
   .movie-grid {
-<<<<<<< HEAD
     grid-template-columns: repeat(2, 1fr);
-=======
-    grid-template-columns: repeat(1, 1fr);
->>>>>>> 805692b7ead5d58b2899817c2b5b789470fc1bbf
   }
 
   .site-name {
