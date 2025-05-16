@@ -226,17 +226,17 @@ interface ViewSeatProps {
 
 const ViewSeat: React.FC<ViewSeatProps> = ({ seatData, selectedSeats, setSelectedSeats }) => {
   // 화면 크기에 따라 좌석 텍스트 표시 여부를 관리하는 상태
-  const [showSeatText, setShowSeatText] = useState(window.innerWidth >= 640)
+  // const [showSeatText, setShowSeatText] = useState(window.innerWidth >= 640)
 
   // 화면 크기 변경 감지
-  useEffect(() => {
-    const handleResize = () => {
-      setShowSeatText(window.innerWidth >= 640)
-    }
+  // useEffect(() => {
+  //   const handleResize = () => {
+  //     setShowSeatText(window.innerWidth >= 640)
+  //   }
 
-    window.addEventListener("resize", handleResize)
-    return () => window.removeEventListener("resize", handleResize)
-  }, [])
+  //   window.addEventListener("resize", handleResize)
+  //   return () => window.removeEventListener("resize", handleResize)
+  // }, [])
   // 좌석 데이터를 그리드 형태로 변환
   const organizeSeatsIntoGrid = () => {
     if (!seatData || seatData.length === 0) return { grid: [], rowLabels: [], colLabels: [] }
@@ -317,28 +317,30 @@ const ViewSeat: React.FC<ViewSeatProps> = ({ seatData, selectedSeats, setSelecte
         </div>
 
         {/* 좌석 그리드 (행 레이블 포함) */}
-        {grid.map((row, rowIndex) => (
-          <div key={rowIndex} className="grid grid-cols-[auto_repeat(10,minmax(0,1fr))] gap-1 max-w-3xl mx-auto">
-            {/* 행 레이블 (왼쪽) */}
-            <div className="w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10 flex items-center justify-center text-xs sm:text-sm font-medium">
-              {rowLabels[rowIndex].toUpperCase()}
-            </div>
+        <div className="space-y-2">
+          {grid.map((row, rowIndex) => (
+            <div key={rowIndex} className="grid grid-cols-[auto_repeat(10,minmax(0,1fr))] gap-1 max-w-3xl mx-auto">
+              {/* 행 레이블 (왼쪽) */}
+              <div className="w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10 flex items-center justify-center text-xs sm:text-sm font-medium">
+                {rowLabels[rowIndex].toUpperCase()}
+              </div>
 
-            {/* 좌석 */}
-            {row.map((seat, colIndex) => (
-              <div
-                key={colIndex}
-                className={`
-                  w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10 flex items-center justify-center text-xs sm:text-sm font-medium rounded-md cursor-pointer transition-colors
+              {/* 좌석 */}
+              {row.map((seat, colIndex) => (
+                <div
+                  key={colIndex}
+                  className={`
+                  w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10 flex items-center justify-center text-[9px] xs:text-[10px] sm:text-xs md:text-sm font-medium rounded-md cursor-pointer transition-colors
                   ${seat ? getSeatClass(seat) : "invisible"}
                 `}
-                onClick={() => seat && handleSeatClick(seat)}
-              >
-                {seat && (window.innerWidth < 640 ? "" : `${seat.horizontal.toUpperCase()}${seat.vertical}`)}
-              </div>
-            ))}
-          </div>
-        ))}
+                  onClick={() => seat && handleSeatClick(seat)}
+                >
+                  {seat && `${seat.horizontal.toUpperCase()}${seat.vertical}`}
+                </div>
+              ))}
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   )
