@@ -210,7 +210,7 @@ export const createOrder = async (orderData: { userId: number; screeningId: numb
   }
 }
 
-// 결제 요청 API 함수 수정 - 실제 카카오페이 URL 처리
+// 결제 요청 API 함수 수정 - body에 orderId만 포함
 export const requestPayment = async (orderId: number) => {
   try {
     const headers: Record<string, string> = {
@@ -224,18 +224,10 @@ export const requestPayment = async (orderId: number) => {
       headers["Authorization"] = `Bearer ${token}`
     }
 
-    // 현재 도메인 기반으로 성공 URL 생성 (백엔드에서 지원하는 경우)
-    const successUrl = `${window.location.origin}/`
-    const cancelUrl = `${window.location.origin}/reservation`
-
-    // 결제 요청 API 호출 (성공/취소 URL 추가)
+    // 결제 요청 API 호출 
     const response = await axios.post(
       `${API_BASE_URL}/v1/payment/request`,
-      {
-        orderId,
-        successUrl, // 성공 시 리다이렉션 URL (백엔드에서 지원하는 경우)
-        cancelUrl, // 취소 시 리다이렉션 URL (백엔드에서 지원하는 경우)
-      },
+      { orderId },
       {
         headers,
         withCredentials: true,
