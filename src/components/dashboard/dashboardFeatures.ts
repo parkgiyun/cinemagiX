@@ -202,7 +202,8 @@ export const deleteUserAccount = async (password: string): Promise<{ success: bo
       password: password,
     }
 
-    const response = await axios.post("@/app/api/user/delete", requestData, {
+    // API 경로를 /api/user/delete에서 /api/user/deleteAccount로 변경
+    const response = await axios.post("/api/user/deleteAccount", requestData, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
