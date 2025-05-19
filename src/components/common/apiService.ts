@@ -3,6 +3,7 @@
 import axios from "axios"
 
 const API_BASE_URL = "https://hs-cinemagix.duckdns.org/api"
+// const API_BASE_URL = "http://localhost:8080/api"
 
 // apiService 함수 수정 - 타임아웃 및 에러 처리 개선
 export const apiService = async (url: string, data: object) => {
@@ -427,6 +428,35 @@ export const fetchAIRecommendedMovies = async (userId: number) => {
 
     if (axios.isAxiosError(err)) {
       throw new Error(err.response?.data?.message || "AI 추천 영화를 불러오는 중 오류가 발생했습니다.")
+    } else if (err instanceof Error) {
+      throw new Error(err.message)
+    } else {
+      throw new Error("알 수 없는 오류가 발생했습니다.")
+    }
+  }
+}
+
+// AI 추천 영화 새로고침 API
+export const refreshAIRecommendedMovies = async (userId: number, type: String) => {
+  if (!userId) return []
+
+  try {
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+      Accept: "*/*",
+    }
+
+    const response = await axios.post(`${API_BASE_URL}/v1/AIRecommand/synopsisV2?userId=${userId}&type=${type}`, {
+      headers,
+      withCredentials: true,
+    })
+
+    return response.data
+  } catch (err: unknown) {
+    console.error("AI 추천 영화 새로고침 오류:", err)
+
+    if (axios.isAxiosError(err)) {
+      throw new Error(err.response?.data?.message || "AI 추천 영화를 새로고침하는 중 오류가 발생했습니다.")
     } else if (err instanceof Error) {
       throw new Error(err.message)
     } else {
