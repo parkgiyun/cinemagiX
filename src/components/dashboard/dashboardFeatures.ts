@@ -202,7 +202,7 @@ export const deleteUserAccount = async (password: string): Promise<{ success: bo
       password: password,
     }
 
-    const response = await axios.post("/api/user/delete", requestData, {
+    const response = await axios.post("/api/user/deleteAccount", requestData, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
