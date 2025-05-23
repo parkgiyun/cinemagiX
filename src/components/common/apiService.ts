@@ -225,7 +225,7 @@ export const requestPayment = async (orderId: number) => {
       headers["Authorization"] = `Bearer ${token}`
     }
 
-    // 결제 요청 API 호출 
+    // 결제 요청 API 호출
     const response = await axios.post(
       `${API_BASE_URL}/v1/payment/request`,
       { orderId },
@@ -437,7 +437,7 @@ export const fetchAIRecommendedMovies = async (userId: number) => {
 }
 
 // AI 추천 영화 새로고침 API
-export const refreshAIRecommendedMovies = async (userId: number, type: String) => {
+export const refreshAIRecommendedMovies = async (userId: number, type: string) => {
   if (!userId) return []
 
   try {

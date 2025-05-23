@@ -340,17 +340,17 @@ export const DashboardContent = ({ user, onLogout, onUpdateUser }: DashboardCont
     loadUserTickets()
   }, [user])
 
-  const handleCancelTicket = async (orderId: number) => {
+  const handleCancelOrder = async (orderId: number) => {
     if (window.confirm("예매를 취소하시겠습니까? 이 작업은 되돌릴 수 없습니다.")) {
       try {
         setLoading(true)
 
-        // 기존 cancelOrder 함수 호출
+        // cancelOrder 함수에 orderId 전달
         const result = await cancelOrder(orderId)
         console.log("예매 취소 결과:", result)
 
-        // 성공 시 UI 업데이트
-        const updatedHistory = bookingHistory.map((b) => (b.id === orderId ? { ...b, status: "canceled" } : b))
+        // 성공 시 UI 업데이트 - 같은 주문 ID를 가진 모든 티켓 상태 업데이트
+        const updatedHistory = bookingHistory.map((b) => (b.orderId === orderId ? { ...b, status: "canceled" } : b))
         setBookingHistory(updatedHistory)
         setSuccess("예매가 취소되었습니다.")
       } catch (error) {
@@ -613,7 +613,7 @@ export const DashboardContent = ({ user, onLogout, onUpdateUser }: DashboardCont
                                   variant="outline"
                                   size="sm"
                                   className="text-red-500 border-red-200 hover:bg-red-50 hover:text-red-600"
-                                  onClick={() => handleCancelTicket(booking.id)}
+                                  onClick={() => handleCancelOrder(booking.orderId)}
                                   disabled={loading}
                                 >
                                   {loading ? (
