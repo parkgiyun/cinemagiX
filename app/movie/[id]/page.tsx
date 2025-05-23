@@ -248,7 +248,7 @@ export default function MovieDetailPage() {
       setReviewText("")
       setUserRating(0)
       setIsSpoiler(false)
-
+      console.log("서버 응답 테스트:", response.status, responseData)
       // 성공 메시지 표시
       alert("리뷰가 등록되었습니다.")
     } catch (error) {
