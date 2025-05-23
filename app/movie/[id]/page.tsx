@@ -226,33 +226,31 @@ export default function MovieDetailPage() {
       const responseData = await response.json()
       console.log("서버 응답:", response.status, responseData)
 
-      // 응답 메시지가 "리뷰 작성 완료"인지 확인
-      if (responseData.message === "리뷰 작성 완료") {
-        // UI에 표시할 새 리뷰 객체 생성
-        const newReview: Review = {
-          id: responseData.id || Date.now(), // 서버에서 반환한 ID 사용
-          username: username,
-          rating: userRating,
-          text: reviewText,
-          date: currentDate,
-          spoiler: isSpoiler,
-          userId: userId,
-        }
-
-        // UI에 리뷰 추가
-        setReviews([newReview, ...reviews])
-
-        // 입력 필드 초기화
-        setReviewText("")
-        setUserRating(0)
-        setIsSpoiler(false)
-
-        // 성공 메시지 표시
-        alert("리뷰가 등록되었습니다.")
-      } else {
-        // 실패 메시지가 있으면 표시, 없으면 기본 메시지 표시
+      if (!response.ok) {
         throw new Error(responseData.message || "리뷰 저장에 실패했습니다.")
       }
+
+      // UI에 표시할 새 리뷰 객체 생성
+      const newReview: Review = {
+        id: responseData.id || Date.now(), // 서버에서 반환한 ID 사용
+        username: username,
+        rating: userRating,
+        text: reviewText,
+        date: currentDate,
+        spoiler: isSpoiler,
+        userId: userId,
+      }
+
+      // UI에 리뷰 추가
+      setReviews([newReview, ...reviews])
+
+      // 입력 필드 초기화
+      setReviewText("")
+      setUserRating(0)
+      setIsSpoiler(false)
+      console.log("서버 응답 테스트:", response.status, responseData)
+      // 성공 메시지 표시
+      alert("리뷰가 등록되었습니다.")
     } catch (error) {
       console.error("리뷰 저장 오류:", error)
       alert("리뷰 저장 중 오류가 발생했습니다. 다시 시도해주세요.")
