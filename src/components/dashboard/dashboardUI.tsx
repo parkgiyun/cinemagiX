@@ -300,6 +300,9 @@ export const DashboardContent = ({ user, onLogout, onUpdateUser }: DashboardCont
         const formattedTickets = Object.values(ticketGroups).map((ticketGroup) => {
           // 그룹의 첫 번째 티켓에서 공통 정보 추출
           const firstTicket = ticketGroup[0]
+          console.log("티켓 그룹의 첫 번째 티켓:", firstTicket)
+          console.log("orderId 값:", firstTicket.orderId || firstTicket.id)
+
           const screening = firstTicket.screening || {}
           const movie = screening.movie || {}
           const room = screening.room || {}
@@ -341,6 +344,12 @@ export const DashboardContent = ({ user, onLogout, onUpdateUser }: DashboardCont
   }, [user])
 
   const handleCancelOrder = async (orderId: number) => {
+    console.log("취소 요청 시작 - 전달된 orderId:", orderId)
+    console.log(
+      "취소할 예매 정보:",
+      bookingHistory.find((b) => b.orderId === orderId),
+    )
+
     if (window.confirm("예매를 취소하시겠습니까? 이 작업은 되돌릴 수 없습니다.")) {
       try {
         setLoading(true)
@@ -613,7 +622,11 @@ export const DashboardContent = ({ user, onLogout, onUpdateUser }: DashboardCont
                                   variant="outline"
                                   size="sm"
                                   className="text-red-500 border-red-200 hover:bg-red-50 hover:text-red-600"
-                                  onClick={() => handleCancelOrder(booking.orderId)}
+                                  onClick={() => {
+                                    console.log("취소 버튼 클릭 - booking:", booking)
+                                    console.log("취소 버튼 클릭 - orderId:", booking.orderId)
+                                    handleCancelOrder(booking.orderId)
+                                  }}
                                   disabled={loading}
                                 >
                                   {loading ? (

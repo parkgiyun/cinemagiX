@@ -270,7 +270,7 @@ export const requestPayment = async (orderId: number) => {
 
 // 주문 취소 API 함수 수정 - PUT 메서드 사용
 export const cancelOrder = async (orderId: number) => {
-  console.log(`cancelOrder 함수 시작: orderId=${orderId}`)
+  console.log(`cancelOrder 함수 시작: orderId=${orderId}, 타입=${typeof orderId}`)
 
   try {
     const headers: Record<string, string> = {
@@ -289,13 +289,14 @@ export const cancelOrder = async (orderId: number) => {
 
     console.log(`주문 취소 요청 준비 완료: orderId=${orderId}, 헤더:`, headers)
 
+    // 요청 URL과 본문 로깅
+    const url = `${API_BASE_URL}/v1/orders/cancel/${orderId}`
+    const requestBody = { orderId }
+    console.log("취소 요청 URL:", url)
+    console.log("취소 요청 본문:", requestBody)
+
     // PUT 메서드로 요청
-    console.log("PUT 메서드로 취소 요청 시도 - /v1/orders/cancel${orderId}")
-    const response = await axios.put(
-      `${API_BASE_URL}/v1/orders/cancel/${orderId}`,
-      { orderId },
-      { headers, withCredentials: true },
-    )
+    const response = await axios.put(url, requestBody, { headers, withCredentials: true })
 
     console.log("주문 취소 응답:", response.data)
     return response.data
