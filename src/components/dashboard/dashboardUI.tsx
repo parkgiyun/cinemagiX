@@ -324,7 +324,7 @@ export const DashboardContent = ({ user, onLogout, onUpdateUser }: DashboardCont
             time: screening.start ? screening.start.substring(0, 5) : "시간 정보 없음",
             seats: seats,
             price: totalPrice,
-            status: "confirmed", // 기본값은 confirmed
+            status: "PAID", // 결제 완료 상태
             orderId: firstTicket.orderId || firstTicket.id, // 취소 시 필요한 주문 ID
             posterImage: movie.posterImage || "",
           }
@@ -617,7 +617,7 @@ export const DashboardContent = ({ user, onLogout, onUpdateUser }: DashboardCont
                               </div>
                             </div>
                             <div>
-                              {booking.status === "confirmed" ? (
+                              {booking.status === "PAID" ? (
                                 <Button
                                   variant="outline"
                                   size="sm"
