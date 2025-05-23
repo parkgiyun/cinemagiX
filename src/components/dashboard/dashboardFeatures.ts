@@ -203,7 +203,7 @@ export const deleteUserAccount = async (password: string): Promise<{ success: bo
     }
 
     // API 경로를 /api/user/delete에서 /api/user/deleteAccount로 변경
-    const response = await axios.post("https://hs-cinemagix.duckdns.org/api/v1/user/deleteAccount", requestData, {
+    const response = await axios.post("/api/v1/user/deleteAccount", requestData, {
       headers: {
         Authorization: `Bearer ${token}`,
       },

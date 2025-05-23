@@ -251,12 +251,10 @@ export default function MovieDetailPage() {
       console.log("서버 응답 테스트:", response.status, responseData)
       // 성공 메시지 표시
       alert("리뷰가 등록되었습니다.")
-    }
-    // } catch (error) {
-    //   console.error("리뷰 저장 오류:", error)
-    //   alert("리뷰 저장 중 오류가 발생했습니다. 다시 시도해주세요.")
-    // } 
-    finally {
+    } catch (error) {
+      console.error("리뷰 저장 오류:", error)
+      alert("리뷰 저장 중 오류가 발생했습니다. 다시 시도해주세요.")
+    } finally {
       setReviewSubmitting(false)
     }
   }
