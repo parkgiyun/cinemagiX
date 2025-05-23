@@ -288,34 +288,37 @@ export const DashboardContent = ({ user, onLogout, onUpdateUser }: DashboardCont
         // 티켓 데이터 구조 확인
         if (tickets.length > 0) {
           console.log("첫 번째 티켓 샘플:", tickets[0])
-          console.log("티켓의 orderId 필드:", tickets[0].orderId)
-          console.log("티켓의 order 필드:", tickets[0].order)
+          console.log("티켓의 order 객체:", tickets[0].order)
         }
 
-        // 티켓을 주문 ID 기준으로 그룹화 (수정된 부분)
+        // 실제 주문 ID를 사용하여 티켓을 그룹화
         const ticketGroups: { [key: string]: any[] } = {}
 
         tickets.forEach((ticket: any) => {
-          // 주문 ID를 정확하게 추출
-          let orderId = null
+          // 실제 주문 ID 추출 - ticket.order.id를 우선 사용
+          let realOrderId = null
 
-          // 티켓에 있는 orderId 필드
-          if (ticket.orderId) {
-            orderId = ticket.orderId
+          if (ticket.order && ticket.order.id) {
+            // 가장 정확한 주문 ID
+            realOrderId = ticket.order.id
+          } else {
+            console.warn("티켓에서 order.id를 찾을 수 없습니다:", ticket)
+            // 대안이 없으면 티켓을 개별적으로 처리
+            realOrderId = `ticket_${ticket.id}`
           }
 
-          console.log(`티켓 ID: ${ticket.id}, 추출된 주문 ID: ${orderId}`)
+          console.log(`티켓 ID: ${ticket.id}, 실제 주문 ID: ${realOrderId}`)
 
-          if (!ticketGroups[orderId]) {
-            ticketGroups[orderId] = []
+          if (!ticketGroups[realOrderId]) {
+            ticketGroups[realOrderId] = []
           }
-          ticketGroups[orderId].push(ticket)
+          ticketGroups[realOrderId].push(ticket)
         })
 
-        console.log("그룹화된 티켓:", ticketGroups)
+        console.log("실제 주문 ID로 그룹화된 티켓:", ticketGroups)
 
         // 그룹화된 티켓을 포맷팅
-        const formattedTickets = Object.entries(ticketGroups).map(([orderId, ticketGroup]) => {
+        const formattedTickets = Object.entries(ticketGroups).map(([realOrderId, ticketGroup]) => {
           // 그룹의 첫 번째 티켓에서 공통 정보 추출
           const firstTicket = ticketGroup[0]
           const screening = firstTicket.screening || {}
@@ -330,8 +333,9 @@ export const DashboardContent = ({ user, onLogout, onUpdateUser }: DashboardCont
           // 총 가격 계산
           const totalPrice = ticketGroup.reduce((sum: number, ticket: any) => sum + (ticket.price || 0), 0)
 
-          // 주문 ID는 그룹화 키로 사용한 값을 사용 (수정된 부분)
-          const orderIdNumber = Number.parseInt(orderId, 10)
+          // 실제 주문 ID 사용 (ticket_으로 시작하는 경우는 개별 티켓이므로 제외)
+          const isRealOrder = !realOrderId.startsWith("ticket_")
+          const orderIdToUse = isRealOrder ? Number.parseInt(realOrderId, 10) : null
 
           return {
             id: firstTicket.id,
@@ -343,8 +347,9 @@ export const DashboardContent = ({ user, onLogout, onUpdateUser }: DashboardCont
             seats: seats,
             price: totalPrice,
             status: "confirmed", // 기본값은 confirmed
-            orderId: orderIdNumber, // 그룹화 키로 사용한 주문 ID
+            orderId: orderIdToUse, // 실제 주문 ID만 사용 (null이면 취소 불가)
             posterImage: movie.posterImage || "",
+            canCancel: isRealOrder, // 실제 주문만 취소 가능
           }
         })
 
@@ -362,7 +367,7 @@ export const DashboardContent = ({ user, onLogout, onUpdateUser }: DashboardCont
   }, [user])
 
   const handleCancelOrder = async (orderId: number) => {
-    console.log("취소 요청 시작 - 전달된 orderId:", orderId)
+    console.log("취소 요청 시작 - 실제 주문 ID:", orderId)
     console.log(
       "취소할 예매 정보:",
       bookingHistory.find((b) => b.orderId === orderId),
@@ -372,7 +377,7 @@ export const DashboardContent = ({ user, onLogout, onUpdateUser }: DashboardCont
       try {
         setLoading(true)
 
-        // cancelOrder 함수에 orderId 전달
+        // cancelOrder 함수에 실제 주문 ID 전달
         const result = await cancelOrder(orderId)
         console.log("예매 취소 결과:", result)
 
@@ -635,14 +640,14 @@ export const DashboardContent = ({ user, onLogout, onUpdateUser }: DashboardCont
                               </div>
                             </div>
                             <div>
-                              {booking.status === "confirmed" ? (
+                              {booking.status === "confirmed" && booking.canCancel && booking.orderId ? (
                                 <Button
                                   variant="outline"
                                   size="sm"
                                   className="text-red-500 border-red-200 hover:bg-red-50 hover:text-red-600"
                                   onClick={() => {
                                     console.log("취소 버튼 클릭 - booking:", booking)
-                                    console.log("취소 버튼 클릭 - orderId:", booking.orderId)
+                                    console.log("취소 버튼 클릭 - 실제 주문 ID:", booking.orderId)
                                     handleCancelOrder(booking.orderId)
                                   }}
                                   disabled={loading}
@@ -654,8 +659,10 @@ export const DashboardContent = ({ user, onLogout, onUpdateUser }: DashboardCont
                                   )}
                                   예매 취소
                                 </Button>
-                              ) : (
+                              ) : booking.status === "canceled" ? (
                                 <span className="text-xs px-2 py-1 bg-gray-100 rounded-full">취소됨</span>
+                              ) : (
+                                <span className="text-xs px-2 py-1 bg-yellow-100 rounded-full">취소 불가</span>
                               )}
                             </div>
                           </div>
