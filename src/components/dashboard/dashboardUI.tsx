@@ -283,26 +283,41 @@ export const DashboardContent = ({ user, onLogout, onUpdateUser }: DashboardCont
         setTicketsError("")
 
         const tickets = await getUserTickets(user.user_id)
+        console.log("원본 티켓 데이터:", tickets)
 
-        // 티켓을 주문 ID 기준으로 그룹화
+        // 티켓 데이터 구조 확인
+        if (tickets.length > 0) {
+          console.log("첫 번째 티켓 샘플:", tickets[0])
+          console.log("티켓의 orderId 필드:", tickets[0].orderId)
+          console.log("티켓의 order 필드:", tickets[0].order)
+        }
+
+        // 티켓을 주문 ID 기준으로 그룹화 (수정된 부분)
         const ticketGroups: { [key: string]: any[] } = {}
 
-        // 티켓을 주문 ID 기준으로 그룹화
         tickets.forEach((ticket: any) => {
-          const orderId = ticket.orderId || ticket.id
+          // 주문 ID를 정확하게 추출
+          let orderId = null
+
+          // 티켓에 있는 orderId 필드
+          if (ticket.orderId) {
+            orderId = ticket.orderId
+          }
+
+          console.log(`티켓 ID: ${ticket.id}, 추출된 주문 ID: ${orderId}`)
+
           if (!ticketGroups[orderId]) {
             ticketGroups[orderId] = []
           }
           ticketGroups[orderId].push(ticket)
         })
 
+        console.log("그룹화된 티켓:", ticketGroups)
+
         // 그룹화된 티켓을 포맷팅
-        const formattedTickets = Object.values(ticketGroups).map((ticketGroup) => {
+        const formattedTickets = Object.entries(ticketGroups).map(([orderId, ticketGroup]) => {
           // 그룹의 첫 번째 티켓에서 공통 정보 추출
           const firstTicket = ticketGroup[0]
-          console.log("티켓 그룹의 첫 번째 티켓:", firstTicket)
-          console.log("orderId 값:", firstTicket.orderId || firstTicket.id)
-
           const screening = firstTicket.screening || {}
           const movie = screening.movie || {}
           const room = screening.room || {}
@@ -315,6 +330,9 @@ export const DashboardContent = ({ user, onLogout, onUpdateUser }: DashboardCont
           // 총 가격 계산
           const totalPrice = ticketGroup.reduce((sum: number, ticket: any) => sum + (ticket.price || 0), 0)
 
+          // 주문 ID는 그룹화 키로 사용한 값을 사용 (수정된 부분)
+          const orderIdNumber = Number.parseInt(orderId, 10)
+
           return {
             id: firstTicket.id,
             movieTitle: movie.title || "제목 없음",
@@ -324,8 +342,8 @@ export const DashboardContent = ({ user, onLogout, onUpdateUser }: DashboardCont
             time: screening.start ? screening.start.substring(0, 5) : "시간 정보 없음",
             seats: seats,
             price: totalPrice,
-            status: "PAID", // 결제 완료 상태
-            orderId: firstTicket.orderId || firstTicket.id, // 취소 시 필요한 주문 ID
+            status: "confirmed", // 기본값은 confirmed
+            orderId: orderIdNumber, // 그룹화 키로 사용한 주문 ID
             posterImage: movie.posterImage || "",
           }
         })
@@ -617,7 +635,7 @@ export const DashboardContent = ({ user, onLogout, onUpdateUser }: DashboardCont
                               </div>
                             </div>
                             <div>
-                              {booking.status === "PAID" ? (
+                              {booking.status === "confirmed" ? (
                                 <Button
                                   variant="outline"
                                   size="sm"
