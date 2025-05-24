@@ -32,3 +32,33 @@ export const theaterAddresses = {
   // 티켓 가격 정보
   export const TICKET_PRICE = 10000 // 일반 상영관 기본 가격
   
+  // 극장별 이미지 매핑 객체 (id: 이미지 경로)
+export const theaterImages: { [key: number]: string } = {
+  1: "/theater/강남.jpg",
+  2: "/theater/건대입구.jpg",
+  3: "/theater/대학로.jpg",
+  4: "/theater/미아.jpg",
+  5: "/theater/남양주.jpg",
+  6: "/theater/수원.jpg",
+  7: "/theater/동탄.jpg",
+  8: "/theater/분당.jpg",
+  9: "/theater/논현.jpg",
+  10: "/theater/송도.jpg",
+  11: "/theater/영종.jpg",
+  12: "/theater/검단.jpg",
+  13: "/theater/춘천.jpg",
+  14: "/theater/속초.jpg",
+  15: "/theater/원주.jpg",
+  16: "/theater/석사.jpg",
+  17: "/theater/대구이시아폴리스.jpg",
+  18: "/theater/대구신세계.jpg",
+  19: "/theater/마산.jpg",
+  20: "/theater/창원.jpg",
+  21: "/theater/덕천.jpg",
+  22: "/theater/해운대.jpg",
+  23: "/theater/부산대.jpg",
+  24: "/theater/서귀포.jpg",
+  25: "/theater/제주삼화.jpg",
+  27: "/theater/제주아라.jpg",
+
+}
