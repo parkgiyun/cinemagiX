@@ -774,7 +774,7 @@ export default function MovieDetailPage() {
                           })}
                         </div>
                         {/* 본인 리뷰에만 수정/삭제 버튼 */}
-                        {currentUserId && review.userId === currentUserId && (
+                        {currentUserId != null && review.userId != null && Number(review.userId) === Number(currentUserId) && (
                           <>
                             <button
                               className="ml-2 px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200"
