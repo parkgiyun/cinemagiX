@@ -289,16 +289,15 @@ export const DashboardContent = ({ user, onLogout, onUpdateUser }: DashboardCont
 
         // 티켓을 주문 ID 기준으로 그룹화
         tickets.forEach((ticket: any) => {
-          const orderId = ticket.orderId || ticket.id
-          if (!ticketGroups[orderId]) {
-            ticketGroups[orderId] = []
+          if (!ticket.orderId) return // orderId 없는 티켓은 무시
+          if (!ticketGroups[ticket.orderId]) {
+            ticketGroups[ticket.orderId] = []
           }
-          ticketGroups[orderId].push(ticket)
+          ticketGroups[ticket.orderId].push(ticket)
         })
 
         // 그룹화된 티켓을 포맷팅
         const formattedTickets = Object.values(ticketGroups).map((ticketGroup) => {
-          // 그룹의 첫 번째 티켓에서 공통 정보 추출
           const firstTicket = ticketGroup[0]
           const screening = firstTicket.screening || {}
           const movie = screening.movie || {}
@@ -322,7 +321,7 @@ export const DashboardContent = ({ user, onLogout, onUpdateUser }: DashboardCont
             seats: seats,
             price: totalPrice,
             status: "confirmed", // 기본값은 confirmed
-            orderId: firstTicket.orderId || firstTicket.id, // 취소 시 필요한 주문 ID
+            orderId: firstTicket.orderId, // 반드시 orderId만 사용
             posterImage: movie.posterImage || "",
           }
         })
