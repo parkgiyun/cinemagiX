@@ -588,7 +588,9 @@ export const DashboardContent = ({ user, onLogout, onUpdateUser }: DashboardCont
                               </div>
                             </div>
                             <div>
-                              {booking.status === "confirmed" ? (
+                              {booking.status === "CANCELED" ? (
+                                <span className="text-xs px-2 py-1 bg-gray-100 rounded-full">취소됨</span>
+                              ) : booking.status === "PAID" ? (
                                 <Button
                                   variant="outline"
                                   size="sm"
@@ -604,7 +606,7 @@ export const DashboardContent = ({ user, onLogout, onUpdateUser }: DashboardCont
                                   예매 취소
                                 </Button>
                               ) : (
-                                <span className="text-xs px-2 py-1 bg-gray-100 rounded-full">취소됨</span>
+                                <span className="text-xs px-2 py-1 bg-yellow-100 rounded-full">결제 대기중</span>
                               )}
                             </div>
                           </div>
