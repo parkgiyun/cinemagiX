@@ -223,16 +223,25 @@ export default function MovieDetailPage() {
         body: JSON.stringify(reviewData),
       })
 
-      const responseData = await response.json()
+      let responseData: any
+      let isJson = false
+      const contentType = response.headers.get("content-type")
+      if (contentType && contentType.includes("application/json")) {
+        responseData = await response.json()
+        isJson = true
+      } else {
+        responseData = await response.text()
+      }
       console.log("서버 응답:", response.status, responseData)
 
       if (!response.ok) {
-        throw new Error(responseData.message || "리뷰 저장에 실패했습니다.")
+        // JSON이면 message, 아니면 전체 텍스트
+        throw new Error(isJson ? (responseData.message || "리뷰 저장에 실패했습니다.") : responseData)
       }
 
       // UI에 표시할 새 리뷰 객체 생성
       const newReview: Review = {
-        id: responseData.id || Date.now(), // 서버에서 반환한 ID 사용
+        id: isJson ? (responseData.id || Date.now()) : Date.now(), // 서버에서 반환한 ID 사용
         username: username,
         rating: userRating,
         text: reviewText,
