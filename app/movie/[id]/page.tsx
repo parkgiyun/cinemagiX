@@ -98,7 +98,7 @@ export default function MovieDetailPage() {
         username: review.username,
         rating: review.rating,
         text: review.review,
-        date: review.review_date || new Date().toISOString().split("T")[0],
+        date: review.review_date,
         spoiler: review.spoiler,
         userId: review.userId,
       }))
@@ -823,7 +823,7 @@ export default function MovieDetailPage() {
                       </div>
                     ) : (
                       <p className="text-gray-700">{review.text}</p>
-                    )
+                    )}
                   </div>
                 ))
               ) : (
