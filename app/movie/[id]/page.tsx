@@ -100,7 +100,7 @@ export default function MovieDetailPage() {
         text: review.review,
         date: new Date(review.createdAt || review.reviewDate || Date.now()).toISOString().split("T")[0],
         spoiler: review.spoiler,
-        userId: review.userId || review.user_id || review.user?.id,
+        userId: Number(review.userId || review.user_id || review.user?.id) || 0,
       }))
 
       setReviews(formattedReviews)
@@ -774,7 +774,7 @@ export default function MovieDetailPage() {
                           })}
                         </div>
                         {/* 본인 리뷰에만 수정/삭제 버튼 */}
-                        {currentUserId != null && review.userId != null && Number(review.userId) === Number(currentUserId) && (
+                        {Number(currentUserId) > 0 && Number(review.userId) > 0 && Number(review.userId) === Number(currentUserId) && (
                           <>
                             <button
                               className="ml-2 px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200"
