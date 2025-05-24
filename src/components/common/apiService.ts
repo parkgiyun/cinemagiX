@@ -418,7 +418,7 @@ export const fetchAIRecommendedMovies = async (userId: number) => {
       Accept: "*/*",
     }
 
-    const response = await axios.get(`${API_BASE_URL}/v1/AIRecommand/recommended?userId=${userId}`, {
+    const response = await axios.get(`${API_BASE_URL}/v1/AIRecommand/getByUser?userId=${userId}`, {
       headers,
       withCredentials: true,
     })
