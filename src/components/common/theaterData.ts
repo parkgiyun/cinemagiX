@@ -57,8 +57,8 @@ export const theaterImages: { [key: number]: string } = {
   21: "/theater/덕천.jpg",
   22: "/theater/해운대.jpg",
   23: "/theater/부산대.jpg",
-  24: "/theater/서귀포.jpg",
+  24: "/theater/경상대.jpg",
   25: "/theater/제주삼화.jpg",
+  26: "/theater/서귀포.jpg",
   27: "/theater/제주아라.jpg",
-
 }
