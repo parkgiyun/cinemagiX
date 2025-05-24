@@ -47,6 +47,11 @@ export default function MovieDetailPage() {
   const [reviewLoading, setReviewLoading] = useState(false)
   const [reviewError, setReviewError] = useState("")
   const [reviewSubmitting, setReviewSubmitting] = useState(false)
+  const [editingReviewId, setEditingReviewId] = useState<number | null>(null)
+  const [editReviewText, setEditReviewText] = useState("")
+  const [editUserRating, setEditUserRating] = useState(0)
+  const [editIsSpoiler, setEditIsSpoiler] = useState(false)
+  const [currentUserId, setCurrentUserId] = useState<number | null>(null)
 
   // Check login status
   useEffect(() => {
@@ -59,6 +64,7 @@ export default function MovieDetailPage() {
           const userData = JSON.parse(userStr)
           setIsLoggedIn(true)
           setUsername(userData.username || "사용자")
+          setCurrentUserId(userData.user_id || userData.id || null)
         } catch (error) {
           console.error("사용자 정보 파싱 오류:", error)
           setIsLoggedIn(false)
@@ -289,6 +295,95 @@ export default function MovieDetailPage() {
     router.push(`/reservation`)
   }
 
+  // 리뷰 삭제 함수
+  const handleDeleteReview = async (reviewId: number) => {
+    if (!window.confirm("리뷰를 삭제하시겠습니까?")) return
+    try {
+      const token = localStorage.getItem("token") || sessionStorage.getItem("token")
+      const response = await fetch(`https://hs-cinemagix.duckdns.org/api/v1/review/reviews/${reviewId}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: token ? `Bearer ${token}` : "",
+        },
+      })
+      if (!response.ok) throw new Error("리뷰 삭제 실패")
+      setReviews(reviews.filter((r) => r.id !== reviewId))
+      alert("리뷰가 삭제되었습니다.")
+    } catch (err) {
+      alert("리뷰 삭제 중 오류가 발생했습니다.")
+    }
+  }
+
+  // 리뷰 수정 시작
+  const handleEditReview = (review: Review) => {
+    setEditingReviewId(review.id)
+    setEditReviewText(review.text)
+    setEditUserRating(review.rating)
+    setEditIsSpoiler(!!review.spoiler)
+  }
+
+  // 리뷰 수정 취소
+  const handleCancelEdit = () => {
+    setEditingReviewId(null)
+    setEditReviewText("")
+    setEditUserRating(0)
+    setEditIsSpoiler(false)
+  }
+
+  // 리뷰 수정 제출
+  const handleEditReviewSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!editingReviewId) return
+    if (editUserRating === 0) {
+      alert("평점을 선택해주세요.")
+      return
+    }
+    if (!editReviewText.trim()) {
+      alert("리뷰 내용을 입력해주세요.")
+      return
+    }
+    try {
+      setReviewSubmitting(true)
+      const token = localStorage.getItem("token") || sessionStorage.getItem("token")
+      const patchData = {
+        rating: editUserRating,
+        review: editReviewText,
+        spoiler: editIsSpoiler,
+      }
+      const response = await fetch(`https://hs-cinemagix.duckdns.org/api/v1/review/reviews/${editingReviewId}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: token ? `Bearer ${token}` : "",
+        },
+        body: JSON.stringify(patchData),
+      })
+      let responseData: any
+      let isJson = false
+      const contentType = response.headers.get("content-type")
+      if (contentType && contentType.includes("application/json")) {
+        responseData = await response.json()
+        isJson = true
+      } else {
+        responseData = await response.text()
+      }
+      if (!response.ok) throw new Error(isJson ? (responseData.message || "리뷰 수정 실패") : responseData)
+      setReviews(
+        reviews.map((r) =>
+          r.id === editingReviewId
+            ? { ...r, rating: editUserRating, text: editReviewText, spoiler: editIsSpoiler }
+            : r
+        )
+      )
+      alert("리뷰가 수정되었습니다.")
+      handleCancelEdit()
+    } catch (err) {
+      alert("리뷰 수정 중 오류가 발생했습니다.")
+    } finally {
+      setReviewSubmitting(false)
+    }
+  }
+
   // Loading state
   if (loading) {
     return (
@@ -460,103 +555,191 @@ export default function MovieDetailPage() {
             {/* 6. 리뷰 폼 UI 수정 (스포일러 체크박스 추가) - 리뷰 폼 부분 교체 */}
             <div className="bg-gray-50 rounded-lg p-4 mb-8">
               <h3 className="text-lg font-semibold mb-3">리뷰 작성</h3>
-              <form onSubmit={handleReviewSubmit}>
-                {/* 4. 리뷰 폼의 별점 선택 UI 부분 수정 (handleReviewSubmit 함수 아래에 있는 리뷰 폼 부분) */}
-                {/* 기존 별점 선택 UI를 아래 코드로 교체: */}
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">평점</label>
-                  <div className="flex">
-                    {[1, 2, 3, 4, 5].map((rating) => (
-                      <div key={rating} className="relative flex">
-                        {/* 별의 왼쪽 절반 (0.5) */}
-                        <div
-                          className="w-3 h-6 overflow-hidden cursor-pointer"
-                          onClick={() => handleRatingClick(rating, true)}
-                          onMouseEnter={() => handleRatingHover(rating, true)}
-                          onMouseLeave={() => handleRatingHover(0, false)}
-                        >
-                          <Star
-                            className={`h-6 w-6 -ml-0 ${
-                              (hoverRating || userRating) >= rating - 0.5
-                                ? "text-yellow-400 fill-yellow-400"
-                                : "text-gray-300"
-                            }`}
-                          />
+              {editingReviewId ? (
+                <form onSubmit={handleEditReviewSubmit}>
+                  {/* 별점 선택 UI (수정 모드) */}
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">평점</label>
+                    <div className="flex">
+                      {[1, 2, 3, 4, 5].map((rating) => (
+                        <div key={rating} className="relative flex">
+                          {/* 별의 왼쪽 절반 (0.5) */}
+                          <div
+                            className="w-3 h-6 overflow-hidden cursor-pointer"
+                            onClick={() => setEditUserRating(rating - 0.5)}
+                          >
+                            <Star
+                              className={`h-6 w-6 -ml-0 ${
+                                editUserRating >= rating - 0.5 ? "text-yellow-400 fill-yellow-400" : "text-gray-300"
+                              }`}
+                            />
+                          </div>
+                          {/* 별의 오른쪽 절반 (1.0) */}
+                          <div
+                            className="w-3 h-6 overflow-hidden cursor-pointer"
+                            onClick={() => setEditUserRating(rating)}
+                          >
+                            <Star
+                              className={`h-6 w-6 -ml-3 ${
+                                editUserRating >= rating ? "text-yellow-400 fill-yellow-400" : "text-gray-300"
+                              }`}
+                            />
+                          </div>
                         </div>
-
-                        {/* 별의 오른쪽 절반 (1.0) */}
-                        <div
-                          className="w-3 h-6 overflow-hidden cursor-pointer"
-                          onClick={() => handleRatingClick(rating, false)}
-                          onMouseEnter={() => handleRatingHover(rating, false)}
-                          onMouseLeave={() => handleRatingHover(0, false)}
-                        >
-                          <Star
-                            className={`h-6 w-6 -ml-3 ${
-                              (hoverRating || userRating) >= rating
-                                ? "text-yellow-400 fill-yellow-400"
-                                : "text-gray-300"
-                            }`}
-                          />
-                        </div>
-                      </div>
-                    ))}
-                    <span className="ml-2 text-sm text-gray-500 self-center">
-                      {userRating > 0 ? `${userRating}점` : "평점을 선택해주세요."}
-                    </span>
+                      ))}
+                      <span className="ml-2 text-sm text-gray-500 self-center">
+                        {editUserRating > 0 ? `${editUserRating}점` : "평점을 선택해주세요."}
+                      </span>
+                    </div>
                   </div>
-                </div>
-
-                <div className="mb-4">
-                  <label htmlFor="review" className="block text-sm font-medium text-gray-700 mb-1">
-                    리뷰 내용
-                  </label>
-                  <textarea
-                    id="review"
-                    rows={4}
-                    value={reviewText}
-                    onChange={(e) => setReviewText(e.target.value)}
-                    placeholder={
-                      isLoggedIn
-                        ? "영화에 대한 감상을 자유롭게 작성해주세요."
-                        : "리뷰를 작성하려면 로그인이 필요합니다."
-                    }
-                    disabled={!isLoggedIn || reviewSubmitting}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-primary"
-                  ></textarea>
-                </div>
-
-                <div className="mb-4">
-                  <div className="flex items-center">
-                    <input
-                      type="checkbox"
-                      id="spoiler"
-                      checked={isSpoiler}
-                      onChange={(e) => setIsSpoiler(e.target.checked)}
-                      disabled={reviewSubmitting}
-                      className="h-4 w-4 text-primary border-gray-300 rounded focus:ring-primary"
-                    />
-                    <label htmlFor="spoiler" className="ml-2 block text-sm text-gray-700">
-                      스포일러 포함 (체크하면 내용이 가려집니다)
+                  <div className="mb-4">
+                    <label htmlFor="editReview" className="block text-sm font-medium text-gray-700 mb-1">
+                      리뷰 내용
                     </label>
+                    <textarea
+                      id="editReview"
+                      rows={4}
+                      value={editReviewText}
+                      onChange={(e) => setEditReviewText(e.target.value)}
+                      disabled={reviewSubmitting}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-primary"
+                    ></textarea>
                   </div>
-                </div>
+                  <div className="mb-4">
+                    <div className="flex items-center">
+                      <input
+                        type="checkbox"
+                        id="editSpoiler"
+                        checked={editIsSpoiler}
+                        onChange={(e) => setEditIsSpoiler(e.target.checked)}
+                        disabled={reviewSubmitting}
+                        className="h-4 w-4 text-primary border-gray-300 rounded focus:ring-primary"
+                      />
+                      <label htmlFor="editSpoiler" className="ml-2 block text-sm text-gray-700">
+                        스포일러 포함 (체크하면 내용이 가려집니다)
+                      </label>
+                    </div>
+                  </div>
+                  <div className="flex justify-end gap-2">
+                    <button
+                      type="button"
+                      onClick={handleCancelEdit}
+                      className="px-4 py-2 rounded-md bg-gray-200 text-gray-700 hover:bg-gray-300"
+                      disabled={reviewSubmitting}
+                    >
+                      취소
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={reviewSubmitting}
+                      className={`px-4 py-2 rounded-md flex items-center ${
+                        !reviewSubmitting ? "bg-primary text-white hover:bg-primary/90" : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                      }`}
+                    >
+                      {reviewSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                      {reviewSubmitting ? "수정 중..." : "수정 완료"}
+                    </button>
+                  </div>
+                </form>
+              ) : (
+                <form onSubmit={handleReviewSubmit}>
+                  {/* 4. 리뷰 폼의 별점 선택 UI 부분 수정 (handleReviewSubmit 함수 아래에 있는 리뷰 폼 부분) */}
+                  {/* 기존 별점 선택 UI를 아래 코드로 교체: */}
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">평점</label>
+                    <div className="flex">
+                      {[1, 2, 3, 4, 5].map((rating) => (
+                        <div key={rating} className="relative flex">
+                          {/* 별의 왼쪽 절반 (0.5) */}
+                          <div
+                            className="w-3 h-6 overflow-hidden cursor-pointer"
+                            onClick={() => handleRatingClick(rating, true)}
+                            onMouseEnter={() => handleRatingHover(rating, true)}
+                            onMouseLeave={() => handleRatingHover(0, false)}
+                          >
+                            <Star
+                              className={`h-6 w-6 -ml-0 ${
+                                (hoverRating || userRating) >= rating - 0.5
+                                  ? "text-yellow-400 fill-yellow-400"
+                                  : "text-gray-300"
+                              }`}
+                            />
+                          </div>
 
-                <div className="flex justify-end">
-                  <button
-                    type="submit"
-                    disabled={!isLoggedIn || reviewSubmitting}
-                    className={`px-4 py-2 rounded-md flex items-center ${
-                      isLoggedIn && !reviewSubmitting
-                        ? "bg-primary text-white hover:bg-primary/90"
-                        : "bg-gray-300 text-gray-500 cursor-not-allowed"
-                    }`}
-                  >
-                    {reviewSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    {reviewSubmitting ? "등록 중..." : "리뷰 등록"}
-                  </button>
-                </div>
-              </form>
+                          {/* 별의 오른쪽 절반 (1.0) */}
+                          <div
+                            className="w-3 h-6 overflow-hidden cursor-pointer"
+                            onClick={() => handleRatingClick(rating, false)}
+                            onMouseEnter={() => handleRatingHover(rating, false)}
+                            onMouseLeave={() => handleRatingHover(0, false)}
+                          >
+                            <Star
+                              className={`h-6 w-6 -ml-3 ${
+                                (hoverRating || userRating) >= rating
+                                  ? "text-yellow-400 fill-yellow-400"
+                                  : "text-gray-300"
+                              }`}
+                            />
+                          </div>
+                        </div>
+                      ))}
+                      <span className="ml-2 text-sm text-gray-500 self-center">
+                        {userRating > 0 ? `${userRating}점` : "평점을 선택해주세요."}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="mb-4">
+                    <label htmlFor="review" className="block text-sm font-medium text-gray-700 mb-1">
+                      리뷰 내용
+                    </label>
+                    <textarea
+                      id="review"
+                      rows={4}
+                      value={reviewText}
+                      onChange={(e) => setReviewText(e.target.value)}
+                      placeholder={
+                        isLoggedIn
+                          ? "영화에 대한 감상을 자유롭게 작성해주세요."
+                          : "리뷰를 작성하려면 로그인이 필요합니다."
+                      }
+                      disabled={!isLoggedIn || reviewSubmitting}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-primary"
+                    ></textarea>
+                  </div>
+
+                  <div className="mb-4">
+                    <div className="flex items-center">
+                      <input
+                        type="checkbox"
+                        id="spoiler"
+                        checked={isSpoiler}
+                        onChange={(e) => setIsSpoiler(e.target.checked)}
+                        disabled={reviewSubmitting}
+                        className="h-4 w-4 text-primary border-gray-300 rounded focus:ring-primary"
+                      />
+                      <label htmlFor="spoiler" className="ml-2 block text-sm text-gray-700">
+                        스포일러 포함 (체크하면 내용이 가려집니다)
+                      </label>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end">
+                    <button
+                      type="submit"
+                      disabled={!isLoggedIn || reviewSubmitting}
+                      className={`px-4 py-2 rounded-md flex items-center ${
+                        isLoggedIn && !reviewSubmitting
+                          ? "bg-primary text-white hover:bg-primary/90"
+                          : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                      }`}
+                    >
+                      {reviewSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                      {reviewSubmitting ? "등록 중..." : "리뷰 등록"}
+                    </button>
+                  </div>
+                </form>
+              )}
             </div>
 
             {/* 7. 리뷰 목록 UI 수정 (스포일러 처리 및 로딩 상태 추가) - 리뷰 목록 부분 교체 */}
@@ -588,30 +771,45 @@ export default function MovieDetailPage() {
                           <div className="text-sm text-gray-500">{review.date}</div>
                         </div>
                       </div>
-                      {/* 5. 리뷰 목록에서 별점 표시 부분 수정 (리뷰 목록 부분에서 별점 표시 부분) */}
-                      {/* 기존 별점 표시 코드를 아래 코드로 교체: */}
-                      <div className="flex items-center">
-                        {[1, 2, 3, 4, 5].map((star) => {
-                          // 별이 완전히 채워져야 하는 경우
-                          if (star <= review.rating) {
-                            return <Star key={star} className="h-4 w-4 text-yellow-400 fill-yellow-400" />
-                          }
-                          // 별이 반만 채워져야 하는 경우 (소수점이 0.5 이상)
-                          else if (star - 0.5 <= review.rating) {
-                            return (
-                              <div key={star} className="relative h-4 w-4">
-                                <Star className="absolute h-4 w-4 text-gray-300" />
-                                <div className="absolute h-4 w-2 overflow-hidden">
-                                  <Star className="h-4 w-4 text-yellow-400 fill-yellow-400" />
+                      <div className="flex items-center gap-2">
+                        {/* 별점 표시 */}
+                        <div className="flex items-center">
+                          {[1, 2, 3, 4, 5].map((star) => {
+                            if (star <= review.rating) {
+                              return <Star key={star} className="h-4 w-4 text-yellow-400 fill-yellow-400" />
+                            } else if (star - 0.5 <= review.rating) {
+                              return (
+                                <div key={star} className="relative h-4 w-4">
+                                  <Star className="absolute h-4 w-4 text-gray-300" />
+                                  <div className="absolute h-4 w-2 overflow-hidden">
+                                    <Star className="h-4 w-4 text-yellow-400 fill-yellow-400" />
+                                  </div>
                                 </div>
-                              </div>
-                            )
-                          }
-                          // 빈 별
-                          else {
-                            return <Star key={star} className="h-4 w-4 text-gray-300" />
-                          }
-                        })}
+                              )
+                            } else {
+                              return <Star key={star} className="h-4 w-4 text-gray-300" />
+                            }
+                          })}
+                        </div>
+                        {/* 본인 리뷰에만 수정/삭제 버튼 */}
+                        {currentUserId && review.userId === currentUserId && (
+                          <>
+                            <button
+                              className="ml-2 px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200"
+                              onClick={() => handleEditReview(review)}
+                              disabled={reviewSubmitting || editingReviewId === review.id}
+                            >
+                              수정
+                            </button>
+                            <button
+                              className="ml-1 px-2 py-1 text-xs bg-red-100 text-red-700 rounded hover:bg-red-200"
+                              onClick={() => handleDeleteReview(review.id)}
+                              disabled={reviewSubmitting}
+                            >
+                              삭제
+                            </button>
+                          </>
+                        )}
                       </div>
                     </div>
                     {review.spoiler ? (
