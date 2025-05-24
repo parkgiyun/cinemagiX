@@ -43,6 +43,7 @@ const SelectedSeat: React.FC<SelectedSeatProps> = ({ setMemoActiveStep, setMemoS
   }, [seatData])
   const [selectedSeats, setSelectedSeats] = useState<SeatData[]>([])
   const [seat_ids, setSeat_ids] = useState<number[]>([])
+  const [loading, setLoading] = useState(false)
 
   useEffect(() => {
     const ids = selectedSeats.map((s) => {
@@ -66,7 +67,8 @@ const SelectedSeat: React.FC<SelectedSeatProps> = ({ setMemoActiveStep, setMemoS
       alert("좌석을 선택해주세요.")
       return
     }
-
+    if (loading) return // 중복 클릭 방지
+    setLoading(true)
     try {
       // 로그인 확인
       const userData = getUserProfile()
@@ -104,6 +106,8 @@ const SelectedSeat: React.FC<SelectedSeatProps> = ({ setMemoActiveStep, setMemoS
     } catch (error) {
       console.error("주문 생성 중 오류 발생:", error)
       alert("상영 시간 30분 전 이후에는 예매할 수 없습니다.")
+    } finally {
+      setLoading(false)
     }
   }
   const handleReSeat = () => {
@@ -161,14 +165,14 @@ const SelectedSeat: React.FC<SelectedSeatProps> = ({ setMemoActiveStep, setMemoS
           </button>
           <button
             className={`px-4 py-2 rounded-md transition-colors ${
-              selectedSeats.length > 0
+              selectedSeats.length > 0 && !loading
                 ? "bg-blue-500 text-white hover:bg-blue-600"
                 : "bg-gray-300 text-gray-500 cursor-not-allowed"
             }`}
             onClick={handleConfirm}
-            disabled={selectedSeats.length === 0}
+            disabled={selectedSeats.length === 0 || loading}
           >
-            선택 완료
+            {loading ? "처리중..." : "선택 완료"}
           </button>
         </div>
       </div>
