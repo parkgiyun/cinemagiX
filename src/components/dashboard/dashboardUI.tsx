@@ -275,6 +275,7 @@ export const DashboardContent = ({ user, onLogout, onUpdateUser }: DashboardCont
   }
 
   useEffect(() => {
+    // 예매 내역(주문 내역) 불러오기
     const loadUserTickets = async () => {
       if (!user || !user.user_id) return
 
@@ -282,53 +283,42 @@ export const DashboardContent = ({ user, onLogout, onUpdateUser }: DashboardCont
         setTicketsLoading(true)
         setTicketsError("")
 
-        const tickets = await getUserTickets(user.user_id)
+        // getUserTickets는 각 주문(order) 객체 배열을 반환해야 함 (각 주문에 tickets[] 포함)
+        const orders = await getUserTickets(user.user_id)
 
-        // 티켓을 주문 ID 기준으로 그룹화
-        const ticketGroups: { [key: string]: any[] } = {}
-
-        // 티켓을 주문 ID 기준으로 그룹화
-        tickets.forEach((ticket: any) => {
-          if (!ticket.orderId) return // orderId 없는 티켓은 무시
-          if (!ticketGroups[ticket.orderId]) {
-            ticketGroups[ticket.orderId] = []
-          }
-          ticketGroups[ticket.orderId].push(ticket)
-        })
-
-        // 그룹화된 티켓을 포맷팅
-        const formattedTickets = Object.values(ticketGroups).map((ticketGroup) => {
-          const firstTicket = ticketGroup[0]
-          const screening = firstTicket.screening || {}
+        // 각 주문(order)을 예매 내역 형식으로 변환
+        const formattedBookings = orders.map((order: any) => {
+          // 상영 정보, 영화 정보, 상영관, 지점, 지역 정보 추출
+          const screening = order.screening || {}
           const movie = screening.movie || {}
           const room = screening.room || {}
           const spot = room.spot || {}
           const region = spot.region || {}
+          const tickets = order.tickets || []
 
-          // 모든 좌석 정보 수집
-          const seats = ticketGroup.map((ticket: any) => `${ticket.horizontal.toUpperCase()}${ticket.vertical}`)
-
-          // 총 가격 계산
-          const totalPrice = ticketGroup.reduce((sum: number, ticket: any) => sum + (ticket.price || 0), 0)
+          // 티켓 배열에서 좌석 정보 추출 (예: A5, B7 등)
+          const seats = tickets.map((ticket: any) => `${ticket.horizontal?.toUpperCase?.() ?? ''}${ticket.vertical ?? ''}`)
+          // 티켓 배열에서 총 금액 계산
+          const totalPrice = tickets.reduce((sum: number, ticket: any) => sum + (ticket.price || 0), 0)
 
           return {
-            id: firstTicket.id,
+            id: order.id, // 주문 id를 고유 key로 사용
+            orderId: order.id, // 주문 id를 예매 취소 등에 사용
             movieTitle: movie.title || "제목 없음",
             theater: `${region.name} ${spot.name}점`,
             screen: `${room.roomnumber}관`,
             date: screening.date || "날짜 정보 없음",
             time: screening.start ? screening.start.substring(0, 5) : "시간 정보 없음",
             seats: seats,
-            price: totalPrice,
-            status: "confirmed", // 기본값은 confirmed
-            orderId: firstTicket.orderId, // 반드시 orderId만 사용
+            price: totalPrice || order.totalAmount || 0,
+            status: order.status === "CANCELED" ? "CANCELED" : "PAID", // 주문 상태에 따라 취소 여부 표시
             posterImage: movie.posterImage || "",
           }
         })
 
-        console.log("변환된 예매 내역:", formattedTickets)
-        setBookingHistory(formattedTickets)
+        setBookingHistory(formattedBookings)
       } catch (error) {
+        // 예매 내역 불러오기 실패 시 에러 처리
         console.error("예매 내역 로드 오류:", error)
         setTicketsError(error instanceof Error ? error.message : "예매 내역을 불러오는 중 오류가 발생했습니다.")
       } finally {
@@ -339,20 +329,22 @@ export const DashboardContent = ({ user, onLogout, onUpdateUser }: DashboardCont
     loadUserTickets()
   }, [user])
 
+  // 예매 취소(주문 취소) 함수 - 반드시 주문 id(orderId)로 취소해야 함
   const handleCancelTicket = async (orderId: number) => {
     if (window.confirm("예매를 취소하시겠습니까? 이 작업은 되돌릴 수 없습니다.")) {
       try {
         setLoading(true)
 
-        // 주문(orderId)로 취소
+        // 주문 id(orderId)로 취소 API 호출
         const result = await cancelOrder(orderId)
         console.log("예매 취소 결과:", result)
 
-        // 성공 시 UI 업데이트
+        // 성공 시 UI에서 해당 주문 상태를 취소로 변경
         const updatedHistory = bookingHistory.map((b) => (b.orderId === orderId ? { ...b, status: "canceled" } : b))
         setBookingHistory(updatedHistory)
         setSuccess("예매가 취소되었습니다.")
       } catch (error) {
+        // 예매 취소 실패 시 에러 처리
         console.error("예매 취소 중 오류 발생:", error)
         setError(error instanceof Error ? error.message : "예매 취소 중 오류가 발생했습니다.")
       } finally {
