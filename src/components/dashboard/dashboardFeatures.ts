@@ -322,22 +322,16 @@ export const verifyEmailCode = async (email: string, code: string): Promise<{ su
   }
 }
 
-// 사용자 예매 내역 조회 함수 추가 (파일 하단에 추가)
-/**
- * 사용자의 예매 내역을 조회하는 함수
- * @param userId 사용자 ID
- * @returns 예매 내역 목록
- */
+// 사용자 예매 내역(주문+티켓) 조회 함수 - orderId 포함된 orders API 사용
 export const getUserTickets = async (userId: number): Promise<any> => {
   try {
     const token = localStorage.getItem("token") || sessionStorage.getItem("token")
-
     if (!token) {
       throw new Error("인증 토큰이 없습니다.")
     }
-
-    const response = await axios.post(
-      "https://hs-cinemagix.duckdns.org/api/v1/detail/retrieve/ticket?user_id=" + userId,
+    // 주문(orders) API로 변경
+    const response = await axios.get(
+      `https://hs-cinemagix.duckdns.org/api/v1/orders/user/${userId}`,
       {
         headers: {
           "Content-Type": "application/json",
@@ -347,38 +341,16 @@ export const getUserTickets = async (userId: number): Promise<any> => {
       },
     )
 
-    console.log("예매 내역 조회 응답:", response.data)
+    console.log("주문+티켓 내역 조회 응답:", response.data)
 
-    if (response.data.errorCode === "SUCCESS") {
-      // 티켓 데이터에 orderId 필드 추가
-      const tickets = response.data.ticketList || []
-
-      // 티켓을 주문 ID로 그룹화하기 위한 맵 생성
-      const orderMap = new Map()
-
-      // 각 티켓에 orderId 필드 추가
-      tickets.forEach((ticket: any) => {
-        // 주문 ID가 없는 경우 생성
-        if (!ticket.orderId) {
-          // 같은 상영 ID와 예매 시간을 가진 티켓은 같은 주문으로 간주
-          const orderKey = `${ticket.screening?.id || ""}_${ticket.createdAt || ""}`
-
-          if (!orderMap.has(orderKey)) {
-            orderMap.set(orderKey, ticket.id)
-          }
-
-          ticket.orderId = orderMap.get(orderKey)
-        }
-      })
-
-      return tickets
+    // 주문 배열 반환
+    if (Array.isArray(response.data)) {
+      return response.data
     }
 
     return []
   } catch (error: any) {
-    console.error("예매 내역 조회 오류:", error)
-    console.error("상세 오류:", error.response?.data || "상세 정보 없음")
-
+    console.error("주문+티켓 내역 조회 오류:", error)
     throw new Error(error.response?.data?.message || "예매 내역을 불러오는 중 오류가 발생했습니다.")
   }
 }

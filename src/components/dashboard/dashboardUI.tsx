@@ -275,60 +275,41 @@ export const DashboardContent = ({ user, onLogout, onUpdateUser }: DashboardCont
   }
 
   useEffect(() => {
+    // 주문+티켓 내역 불러오기 (orderId 포함)
     const loadUserTickets = async () => {
       if (!user || !user.user_id) return
-
       try {
         setTicketsLoading(true)
         setTicketsError("")
-        const tickets = await getUserTickets(user.user_id)
-
-        // 티켓을 주문 ID 기준으로 그룹화
-        const ticketGroups: { [key: string]: any[] } = {}
-
-        // 티켓을 주문 ID 기준으로 그룹화
-        tickets.forEach((ticket: any) => {
-          console.log("ticket.orderId 확인!!!:", ticket.orderId)
-          const orderId = ticket.orderId
-          if (!ticketGroups[orderId]) {
-            ticketGroups[orderId] = []
-          }
-          ticketGroups[orderId].push(ticket)
-        })
-        
-        // 그룹화된 티켓을 포맷팅
-        const formattedTickets = Object.values(ticketGroups).map((ticketGroup) => {
-          // 그룹의 첫 번째 티켓에서 공통 정보 추출
-          const firstTicket = ticketGroup[0]
-          const screening = firstTicket.screening || {}
+        // getUserTickets는 주문(order) 배열 반환
+        const orders = await getUserTickets(user.user_id)
+        // 주문별로 예매 내역 포맷팅
+        const formattedBookings = orders.map((order: any) => {
+          const screening = order.screening || {}
           const movie = screening.movie || {}
           const room = screening.room || {}
           const spot = room.spot || {}
           const region = spot.region || {}
-
-          // 모든 좌석 정보 수집
-          const seats = ticketGroup.map((ticket: any) => `${ticket.horizontal.toUpperCase()}${ticket.vertical}`)
-
-          // 총 가격 계산
-          const totalPrice = ticketGroup.reduce((sum: number, ticket: any) => sum + (ticket.price || 0), 0)
-
+          const tickets = order.tickets || []
+          // 좌석 정보 추출
+          const seats = tickets.map((ticket: any) => `${ticket.horizontal?.toUpperCase?.() ?? ''}${ticket.vertical ?? ''}`)
+          // 총 금액 계산
+          const totalPrice = tickets.reduce((sum: number, ticket: any) => sum + (ticket.price || 0), 0)
           return {
-            id: firstTicket.id,
+            id: order.id, // 주문 id
+            orderId: order.id, // 주문 id (취소에 사용)
             movieTitle: movie.title || "제목 없음",
             theater: `${region.name} ${spot.name}점`,
             screen: `${room.roomnumber}관`,
             date: screening.date || "날짜 정보 없음",
             time: screening.start ? screening.start.substring(0, 5) : "시간 정보 없음",
             seats: seats,
-            price: totalPrice,
-            status: "confirmed", // 기본값은 confirmed
-            orderId: firstTicket.orderId, // 취소 시 필요한 주문 ID
+            price: totalPrice || order.totalAmount || 0,
+            status: order.status, // 주문 상태(PAID, PENDING, CANCELED)
             posterImage: movie.posterImage || "",
           }
         })
-
-        console.log("변환된 예매 내역:", formattedTickets)
-        setBookingHistory(formattedTickets)
+        setBookingHistory(formattedBookings)
       } catch (error) {
         console.error("예매 내역 로드 오류:", error)
         setTicketsError(error instanceof Error ? error.message : "예매 내역을 불러오는 중 오류가 발생했습니다.")
@@ -336,7 +317,6 @@ export const DashboardContent = ({ user, onLogout, onUpdateUser }: DashboardCont
         setTicketsLoading(false)
       }
     }
-
     loadUserTickets()
   }, [user])
 
