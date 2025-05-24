@@ -805,7 +805,7 @@ export default function MovieDetailPage() {
                       </div>
                     ) : (
                       <p className="text-gray-700">{review.text}</p>
-                    )
+                    )}
                   </div>
                 ))
               ) : (
