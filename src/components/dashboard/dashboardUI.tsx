@@ -311,7 +311,13 @@ export const DashboardContent = ({ user, onLogout, onUpdateUser }: DashboardCont
             time: screening.start ? screening.start.substring(0, 5) : "시간 정보 없음",
             seats: seats,
             price: totalPrice || order.totalAmount || 0,
-            status: order.status === "CANCELED" ? "CANCELED" : "PAID", // 주문 상태에 따라 취소 여부 표시
+            // 주문 상태에 따라 표시값을 한글로 변환
+            status:
+              order.status === "CANCELED"
+                ? "CANCELED" // 취소됨
+                : order.status === "PAID"
+                ? "PAID" // 결제 완료
+                : "PENDING", // 결제 대기중
             posterImage: movie.posterImage || "",
           }
         })
