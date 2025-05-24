@@ -330,7 +330,9 @@ export const DashboardContent = ({ user, onLogout, onUpdateUser }: DashboardCont
         console.log("예매 취소 결과:", result)
 
         // 성공 시 UI 업데이트
-        const updatedHistory = bookingHistory.map((b) => (b.id === orderId ? { ...b, status: "canceled" } : b))
+        const updatedHistory = bookingHistory.map((b) =>
+          b.id === orderId ? { ...b, status: "CANCELED" } : b
+        )
         setBookingHistory(updatedHistory)
         setSuccess("예매가 취소되었습니다.")
       } catch (error) {
