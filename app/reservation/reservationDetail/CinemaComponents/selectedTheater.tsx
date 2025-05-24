@@ -11,7 +11,7 @@ import type { Movie, Region, Theater, MovieRunningDetail } from "@/src/component
 import { fetchSpotAndDate } from "@/src/components/common/apiService"
 import { calcFinishTime } from "@/src/components/common/timeClacService"
 import { MapPin, Clock } from "lucide-react"
-import { theaterAddresses } from "@/src/components/common/theaterData"
+import { theaterAddresses, theaterImages } from "@/src/components/common/theaterData"
 
 interface SelectedTheaterProps {
   setMemoActiveStep: (id: number) => void
@@ -304,7 +304,7 @@ const SelectedTheater: React.FC<SelectedTheaterProps> = ({
                     <div className="flex items-center gap-3">
                       <div className="relative w-[60px] h-[40px] bg-gray-200 rounded overflow-hidden">
                         <Image
-                          src={"/placeholder.svg"}
+                          src={theaterImages[theater.id] || "/placeholder.svg"}
                           alt={theater.name}
                           width={60}
                           height={40}
