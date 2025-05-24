@@ -281,7 +281,6 @@ export const DashboardContent = ({ user, onLogout, onUpdateUser }: DashboardCont
       try {
         setTicketsLoading(true)
         setTicketsError("")
-
         const tickets = await getUserTickets(user.user_id)
 
         // 티켓을 주문 ID 기준으로 그룹화
@@ -289,13 +288,14 @@ export const DashboardContent = ({ user, onLogout, onUpdateUser }: DashboardCont
 
         // 티켓을 주문 ID 기준으로 그룹화
         tickets.forEach((ticket: any) => {
-          const orderId = ticket.orderId || ticket.id
+          console.log("ticket.orderId 확인!!!:", ticket.orderId)
+          const orderId = ticket.orderId
           if (!ticketGroups[orderId]) {
             ticketGroups[orderId] = []
           }
           ticketGroups[orderId].push(ticket)
         })
-
+        
         // 그룹화된 티켓을 포맷팅
         const formattedTickets = Object.values(ticketGroups).map((ticketGroup) => {
           // 그룹의 첫 번째 티켓에서 공통 정보 추출
