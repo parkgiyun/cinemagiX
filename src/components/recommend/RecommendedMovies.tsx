@@ -384,15 +384,18 @@ export const RecommendedMovies = () => {
               </button>
             )}
 
-            <div className="movie-grid grid grid-cols-6 gap-6 justify-center">
+            {/* <div className="movie-grid grid grid-cols-6 gap-6 justify-center"> */}
+            <div className="recommend-movie-grid justify-center">
+              {/* 영화 포스터 화면 맞추려고 빈 div 작성 */}
+              <div></div>
               {moviesToShow.map((movie) => (
                 <div key={movie.movieId} className="movie-card w-full overflow-hidden">
-                  <div className="bg-gray-200 aspect-[2/3] rounded-md mb-3 relative group">
+                  <div className="bg-gray-200 aspect-[7/8] rounded-md mb-3 relative group">
                     <Link href={`/movie/${movie.movieId}`}>
                       <img
                         src={
                           movie.posterImage ||
-                          `/placeholder.svg?height=256&width=200&text=${encodeURIComponent(movie.title) || "/placeholder.svg"}`
+                          `/placeholder.svg?height=100&width=100&text=${encodeURIComponent(movie.title) || "/placeholder.svg"}`
                         }
                         alt={movie.title}
                         className="h-full w-full object-contain rounded-md transition-opacity group-hover:opacity-75"
@@ -409,11 +412,14 @@ export const RecommendedMovies = () => {
                     </Link>
                   </div>
                   <h3 className="font-medium text-base whitespace-nowrap overflow-hidden text-ellipsis hover:text-primary transition-colors text-center">
-                    {movie.title}
+                    {movie.title || "영화 추천 이유"}
                   </h3>
+                  <br></br>
                   <p className="text-xs text-gray-500 text-center">{movie.reason}</p>
                 </div>
               ))}
+              {/* 영화 포스터 화면 맞추려고 빈 div 작성 */}
+              <div></div>
             </div>
 
             {/* 페이지 인디케이터 */}

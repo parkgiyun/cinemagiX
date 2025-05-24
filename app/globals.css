@@ -381,3 +381,15 @@ h6 {
 .font-semibold {
   font-weight: 600 !important;
 }
+
+
+/*---------------------------------------------------------------*/
+
+.recommend-movie-grid {
+  
+  display: grid;
+  grid-auto-flow: column; /* ✅ 가로 방향으로만 배치 (행 1개) */
+  grid-template-rows: 1fr; /* ✅ 행을 1개로 제한 */
+  grid-auto-columns: minmax(300px, 1fr); /* ✅ 열 너비를 크게 설정 */
+  gap: 0.5rem; /* ✅ 열 간격 작게 설정 */
+}
