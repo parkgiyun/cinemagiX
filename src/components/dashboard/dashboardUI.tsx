@@ -275,60 +275,41 @@ export const DashboardContent = ({ user, onLogout, onUpdateUser }: DashboardCont
   }
 
   useEffect(() => {
+    // 주문+티켓 내역 불러오기 (orderId 포함)
     const loadUserTickets = async () => {
       if (!user || !user.user_id) return
-
       try {
         setTicketsLoading(true)
         setTicketsError("")
-
-        const tickets = await getUserTickets(user.user_id)
-
-        // 티켓을 주문 ID 기준으로 그룹화
-        const ticketGroups: { [key: string]: any[] } = {}
-
-        // 티켓을 주문 ID 기준으로 그룹화
-        tickets.forEach((ticket: any) => {
-          const orderId = ticket.orderId || ticket.id
-          if (!ticketGroups[orderId]) {
-            ticketGroups[orderId] = []
-          }
-          ticketGroups[orderId].push(ticket)
-        })
-
-        // 그룹화된 티켓을 포맷팅
-        const formattedTickets = Object.values(ticketGroups).map((ticketGroup) => {
-          // 그룹의 첫 번째 티켓에서 공통 정보 추출
-          const firstTicket = ticketGroup[0]
-          const screening = firstTicket.screening || {}
+        // getUserTickets는 주문(order) 배열 반환
+        const orders = await getUserTickets(user.user_id)
+        // 주문별로 예매 내역 포맷팅
+        const formattedBookings = orders.map((order: any) => {
+          const screening = order.screening || {}
           const movie = screening.movie || {}
           const room = screening.room || {}
           const spot = room.spot || {}
           const region = spot.region || {}
-
-          // 모든 좌석 정보 수집
-          const seats = ticketGroup.map((ticket: any) => `${ticket.horizontal.toUpperCase()}${ticket.vertical}`)
-
-          // 총 가격 계산
-          const totalPrice = ticketGroup.reduce((sum: number, ticket: any) => sum + (ticket.price || 0), 0)
-
+          const tickets = order.tickets || []
+          // 좌석 정보 추출
+          const seats = tickets.map((ticket: any) => `${ticket.horizontal?.toUpperCase?.() ?? ''}${ticket.vertical ?? ''}`)
+          // 총 금액 계산
+          const totalPrice = tickets.reduce((sum: number, ticket: any) => sum + (ticket.price || 0), 0)
           return {
-            id: firstTicket.id,
+            id: order.id, // 주문 id
+            orderId: order.id, // 주문 id (취소에 사용)
             movieTitle: movie.title || "제목 없음",
             theater: `${region.name} ${spot.name}점`,
             screen: `${room.roomnumber}관`,
             date: screening.date || "날짜 정보 없음",
             time: screening.start ? screening.start.substring(0, 5) : "시간 정보 없음",
             seats: seats,
-            price: totalPrice,
-            status: "confirmed", // 기본값은 confirmed
-            orderId: firstTicket.orderId || firstTicket.id, // 취소 시 필요한 주문 ID
+            price: totalPrice || order.totalAmount || 0,
+            status: order.status, // 주문 상태(PAID, PENDING, CANCELED)
             posterImage: movie.posterImage || "",
           }
         })
-
-        console.log("변환된 예매 내역:", formattedTickets)
-        setBookingHistory(formattedTickets)
+        setBookingHistory(formattedBookings)
       } catch (error) {
         console.error("예매 내역 로드 오류:", error)
         setTicketsError(error instanceof Error ? error.message : "예매 내역을 불러오는 중 오류가 발생했습니다.")
@@ -336,7 +317,6 @@ export const DashboardContent = ({ user, onLogout, onUpdateUser }: DashboardCont
         setTicketsLoading(false)
       }
     }
-
     loadUserTickets()
   }, [user])
 
@@ -345,12 +325,14 @@ export const DashboardContent = ({ user, onLogout, onUpdateUser }: DashboardCont
       try {
         setLoading(true)
 
-        // 주문(orderId)로 취소
+        // 기존 cancelOrder 함수 호출
         const result = await cancelOrder(orderId)
         console.log("예매 취소 결과:", result)
 
         // 성공 시 UI 업데이트
-        const updatedHistory = bookingHistory.map((b) => (b.orderId === orderId ? { ...b, status: "canceled" } : b))
+        const updatedHistory = bookingHistory.map((b) =>
+          b.id === orderId ? { ...b, status: "CANCELED" } : b
+        )
         setBookingHistory(updatedHistory)
         setSuccess("예매가 취소되었습니다.")
       } catch (error) {
@@ -608,12 +590,14 @@ export const DashboardContent = ({ user, onLogout, onUpdateUser }: DashboardCont
                               </div>
                             </div>
                             <div>
-                              {booking.status === "confirmed" ? (
+                              {booking.status === "CANCELED" ? (
+                                <span className="text-xs px-2 py-1 bg-gray-100 rounded-full">취소됨</span>
+                              ) : booking.status === "PAID" ? (
                                 <Button
                                   variant="outline"
                                   size="sm"
                                   className="text-red-500 border-red-200 hover:bg-red-50 hover:text-red-600"
-                                  onClick={() => handleCancelTicket(booking.orderId)}
+                                  onClick={() => handleCancelTicket(booking.id)}
                                   disabled={loading}
                                 >
                                   {loading ? (
@@ -624,7 +608,7 @@ export const DashboardContent = ({ user, onLogout, onUpdateUser }: DashboardCont
                                   예매 취소
                                 </Button>
                               ) : (
-                                <span className="text-xs px-2 py-1 bg-gray-100 rounded-full">취소됨</span>
+                                <span className="text-xs px-2 py-1 bg-yellow-100 rounded-full">결제 대기중</span>
                               )}
                             </div>
                           </div>
