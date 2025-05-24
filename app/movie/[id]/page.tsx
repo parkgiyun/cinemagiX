@@ -95,12 +95,12 @@ export default function MovieDetailPage() {
       // API 응답 데이터를 Review 타입에 맞게 변환
       const formattedReviews: Review[] = data.map((review: any) => ({
         id: review.id,
-        username: review.user?.username || "익명",
+        username: review.username || review.user?.username || "익명",
         rating: review.rating,
         text: review.review,
-        date: new Date(review.createdAt || Date.now()).toISOString().split("T")[0],
+        date: new Date(review.createdAt || review.reviewDate || Date.now()).toISOString().split("T")[0],
         spoiler: review.spoiler,
-        userId: review.userId,
+        userId: review.userId || review.user_id || review.user?.id,
       }))
 
       setReviews(formattedReviews)
