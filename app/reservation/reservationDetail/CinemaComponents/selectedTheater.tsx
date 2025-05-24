@@ -301,13 +301,24 @@ const SelectedTheater: React.FC<SelectedTheaterProps> = ({
                     }`}
                     onClick={() => handleTheaterSelect(theater.id)}
                   >
-                    <div className="flex items-center justify-between gap-3">
-                      <div className="flex items-center">
-                        <h3 className="font-medium text-base">{theater.name}</h3>
+                    <div className="flex items-center gap-3">
+                      <div className="relative w-[60px] h-[40px] bg-gray-200 rounded overflow-hidden">
+                        <Image
+                          src={"/placeholder.svg"}
+                          alt={theater.name}
+                          width={60}
+                          height={40}
+                          className="w-full h-full object-cover"
+                        />
                       </div>
-                      <div className="flex items-center text-xs text-gray-500">
-                        <MapPin className="h-3 w-3 mr-1" />
-                        <span>{theaterAddresses[theater.id as keyof typeof theaterAddresses]}</span>
+                      <div className="flex-1">
+                        <div className="flex items-center">
+                          <h3 className="font-medium">{theater.name}</h3>
+                        </div>
+                        <div className="flex items-center text-xs text-gray-500 mt-0.5">
+                          <MapPin className="h-3 w-3 mr-1" />
+                          <span>{theaterAddresses[theater.id as keyof typeof theaterAddresses]}</span>
+                        </div>
                       </div>
                     </div>
                   </div>
