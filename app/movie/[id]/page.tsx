@@ -95,12 +95,12 @@ export default function MovieDetailPage() {
       // API 응답 데이터를 Review 타입에 맞게 변환
       const formattedReviews: Review[] = data.map((review: any) => ({
         id: review.id,
-        username: review.username || review.user?.username || "익명",
+        username: review.user?.username || "익명",
         rating: review.rating,
         text: review.review,
-        date: new Date(review.createdAt || review.reviewDate || Date.now()).toISOString().split("T")[0],
+        date: new Date(review.createdAt || Date.now()).toISOString().split("T")[0],
         spoiler: review.spoiler,
-        userId: Number(review.userId || review.user_id || review.user?.id) || 0,
+        userId: review.userId,
       }))
 
       setReviews(formattedReviews)
@@ -241,16 +241,30 @@ export default function MovieDetailPage() {
       console.log("서버 응답:", response.status, responseData)
 
       if (!response.ok) {
+        // JSON이면 message, 아니면 전체 텍스트
         throw new Error(isJson ? (responseData.message || "리뷰 저장에 실패했습니다.") : responseData)
       }
 
-      // 서버에서 id를 반환하므로, 리뷰 목록을 새로고침하여 실제 id를 사용
-      await fetchReviews(movieId)
+      // UI에 표시할 새 리뷰 객체 생성
+      const newReview: Review = {
+        id: isJson ? (responseData.id || Date.now()) : Date.now(), // 서버에서 반환한 ID 사용
+        username: username,
+        rating: userRating,
+        text: reviewText,
+        date: currentDate,
+        spoiler: isSpoiler,
+        userId: userId,
+      }
+
+      // UI에 리뷰 추가
+      setReviews([newReview, ...reviews])
 
       // 입력 필드 초기화
       setReviewText("")
       setUserRating(0)
       setIsSpoiler(false)
+      console.log("서버 응답 테스트:", response.status, responseData)
+      // 성공 메시지 표시
       alert("리뷰가 등록되었습니다.")
     } catch (error) {
       console.error("리뷰 저장 오류:", error)
@@ -293,8 +307,7 @@ export default function MovieDetailPage() {
         },
       })
       if (!response.ok) throw new Error("리뷰 삭제 실패")
-      // 삭제 후 리뷰 목록 새로고침
-      await fetchReviews(movie.id || Number(localMovieId))
+      setReviews(reviews.filter((r) => r.id !== reviewId))
       alert("리뷰가 삭제되었습니다.")
     } catch (err) {
       alert("리뷰 삭제 중 오류가 발생했습니다.")
@@ -355,8 +368,13 @@ export default function MovieDetailPage() {
         responseData = await response.text()
       }
       if (!response.ok) throw new Error(isJson ? (responseData.message || "리뷰 수정 실패") : responseData)
-      // 수정 후 리뷰 목록 새로고침
-      await fetchReviews(movie.id || Number(localMovieId))
+      setReviews(
+        reviews.map((r) =>
+          r.id === editingReviewId
+            ? { ...r, rating: editUserRating, text: editReviewText, spoiler: editIsSpoiler }
+            : r
+        )
+      )
       alert("리뷰가 수정되었습니다.")
       handleCancelEdit()
     } catch (err) {
@@ -774,7 +792,7 @@ export default function MovieDetailPage() {
                           })}
                         </div>
                         {/* 본인 리뷰에만 수정/삭제 버튼 */}
-                        {Number(currentUserId) > 0 && Number(review.userId) > 0 && Number(review.userId) === Number(currentUserId) && (
+                        {currentUserId && review.userId === currentUserId && (
                           <>
                             <button
                               className="ml-2 px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200"
