@@ -6,6 +6,7 @@ import { Button } from "../common/Button"
 import { ErrorAlert } from "../common/ErrorAlert"
 import Link from "next/link"
 import { Header } from "../common/Header"
+import { SocialLoginButtons } from "../login/loginFeatures"
 
 interface LoginFormProps {
   onSubmit: (email: string, password: string) => Promise<void>
@@ -81,6 +82,11 @@ export const LoginForm = ({ onSubmit, error, loading }: LoginFormProps) => {
                 회원가입
               </Link>
             </p>
+          </div>
+
+          {/* 소셜 로그인 버튼 추가 */}
+          <div className="mt-6">
+            <SocialLoginButtons />
           </div>
         </div>
       </div>
