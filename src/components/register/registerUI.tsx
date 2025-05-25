@@ -7,6 +7,7 @@ import { ErrorAlert } from "../common/ErrorAlert"
 import Link from "next/link"
 import { CheckCircle2, Loader2 } from "lucide-react"
 import { Header } from "../common/Header"
+import { SocialLoginButtons } from "../login/loginFeatures"
 
 interface RegisterFormData {
   email: string
@@ -208,6 +209,11 @@ export const RegisterForm = ({
                 로그인
               </Link>
             </p>
+          </div>
+
+          {/* 소셜 로그인 버튼 추가 */}
+          <div className="mt-6">
+            <SocialLoginButtons />
           </div>
         </div>
       </div>
