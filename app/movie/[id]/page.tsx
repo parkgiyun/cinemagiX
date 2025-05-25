@@ -100,7 +100,6 @@ export default function MovieDetailPage() {
         text: review.review,
         date: review.review_date,
         spoiler: review.spoiler,
-        userId: review.userId,
       }))
 
       setReviews(formattedReviews)
@@ -791,8 +790,8 @@ export default function MovieDetailPage() {
                             }
                           })}
                         </div>
-                        {/* 본인 리뷰에만 수정/삭제 버튼 */}
-                        {currentUserId && review.userId === currentUserId && (
+                        {/* 본인 리뷰에만 수정/삭제 버튼 (username 비교) */}
+                        {isLoggedIn && review.username === username && (
                           <>
                             <button
                               className="ml-2 px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200"

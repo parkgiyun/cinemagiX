@@ -33,7 +33,7 @@ export const SocialLoginButtons: React.FC = function SocialLoginButtons() {
         className:
           "flex items-center justify-center gap-2 border border-gray-200 rounded px-4 py-2 bg-white text-gray-800 font-medium hover:bg-gray-50 transition",
         rel: "noopener noreferrer",
-        target: "_blank",
+        target: "_self",
       },
       React.createElement("img", {
         src: "/google.svg",
@@ -49,7 +49,7 @@ export const SocialLoginButtons: React.FC = function SocialLoginButtons() {
         className:
           "flex items-center justify-center gap-2 border border-yellow-300 rounded px-4 py-2 bg-[#fee500] text-[#3c1e1e] font-medium hover:bg-yellow-200 transition",
         rel: "noopener noreferrer",
-        target: "_blank",
+        target: "_self",
       },
       React.createElement("img", {
         src: "/kakao.svg",
