@@ -33,7 +33,7 @@ export const SocialLoginButtons: React.FC = function SocialLoginButtons() {
         className:
           "flex items-center justify-center gap-2 border border-gray-200 rounded px-4 py-2 bg-white text-gray-800 font-medium hover:bg-gray-50 transition",
         rel: "noopener noreferrer",
-        target: "_blank",
+        target: "_self",
       },
       React.createElement("img", {
         src: "/google.svg",
@@ -49,7 +49,7 @@ export const SocialLoginButtons: React.FC = function SocialLoginButtons() {
         className:
           "flex items-center justify-center gap-2 border border-yellow-300 rounded px-4 py-2 bg-[#fee500] text-[#3c1e1e] font-medium hover:bg-yellow-200 transition",
         rel: "noopener noreferrer",
-        target: "_blank",
+        target: "_self",
       },
       React.createElement("img", {
         src: "/kakao.svg",
@@ -59,36 +59,4 @@ export const SocialLoginButtons: React.FC = function SocialLoginButtons() {
       "카카오로 로그인"
     )
   )
-}
-
-if (typeof window !== "undefined") {
-  // 구글/카카오 소셜 로그인 콜백 URL 패턴에 대응
-  const href = window.location.href
-  const isSocialLoginCallback =
-    href.includes("/login/oauth2/code/google") ||
-    href.includes("/login/oauth2/code/kakao")
-
-  console.log("isSocialLoginCallback(href):", isSocialLoginCallback, href)
-  if (isSocialLoginCallback) {
-    // F12 개발자도구에서 응답 메시지와 쿠키가 보이는 경우, 응답 메시지가 <pre> 태그에 노출되는 경우가 많음
-    let userData = null
-    try {
-      // <pre> 태그에서 JSON 응답 추출
-      const pre = document.querySelector("pre")
-      if (pre) {
-        const raw = pre.textContent || ""
-        const parsed = JSON.parse(raw)
-        if (parsed && parsed.data && parsed.data.user_id) {
-          userData = parsed.data
-        }
-      }
-    } catch (e) {}
-    // userData가 있으면 localStorage/sessionStorage에 저장
-    if (userData && userData.user_id) {
-      localStorage.setItem("user", JSON.stringify(userData))
-      sessionStorage.setItem("user", JSON.stringify(userData))
-    }
-    // 홈으로 이동
-    window.location.replace("/")
-  }
 }
