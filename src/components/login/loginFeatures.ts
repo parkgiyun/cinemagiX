@@ -60,3 +60,46 @@ export const SocialLoginButtons: React.FC = function SocialLoginButtons() {
     )
   )
 }
+
+// 소셜 로그인 콜백 처리: 로그인 성공 시 홈페이지로 리다이렉트 및 사용자 정보 저장
+if (typeof window !== "undefined") {
+  // 구글/카카오 소셜 로그인 콜백 URL 패턴에 대응
+  const pathname = window.location.pathname
+  const isSocialLoginCallback =
+    pathname.startsWith("/login/oauth2/code/google") ||
+    pathname.startsWith("/login/oauth2/code/kakao")
+
+  if (isSocialLoginCallback) {
+    // 서버에서 사용자 정보가 window.__SOCIAL_LOGIN_USER__로 전달된다고 가정 (SSR/템플릿에서 주입)
+    let userData = null
+    try {
+      userData = (window as any).__SOCIAL_LOGIN_USER__
+    } catch (e) {}
+    if (!userData) {
+      try {
+        const el = document.getElementById("social-login-user-json")
+        if (el) userData = JSON.parse(el.textContent || "")
+      } catch (e) {}
+    }
+    // 만약 위 방식으로도 userData가 없으면, 응답 메시지에서 직접 파싱 시도 (예: 서버가 JSON을 렌더링)
+    if (!userData) {
+      try {
+        // body에 JSON이 그대로 노출된 경우 파싱 시도
+        const pre = document.querySelector("pre")
+        if (pre) {
+          const raw = pre.textContent || ""
+          const parsed = JSON.parse(raw)
+          if (parsed && parsed.data && parsed.data.user_id) {
+            userData = parsed.data
+          }
+        }
+      } catch (e) {}
+    }
+    if (userData && userData.user_id) {
+      localStorage.setItem("user", JSON.stringify(userData))
+      sessionStorage.setItem("user", JSON.stringify(userData))
+    }
+    // 홈으로 이동
+    window.location.replace("/")
+  }
+}
