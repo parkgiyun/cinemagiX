@@ -63,12 +63,12 @@ export const SocialLoginButtons: React.FC = function SocialLoginButtons() {
 
 if (typeof window !== "undefined") {
   // 구글/카카오 소셜 로그인 콜백 URL 패턴에 대응
-  const pathname = window.location.pathname
+  const href = window.location.href
   const isSocialLoginCallback =
-    pathname.startsWith("/login/oauth2/code/google") ||
-    pathname.startsWith("/login/oauth2/code/kakao")
+    href.includes("/login/oauth2/code/google") ||
+    href.includes("/login/oauth2/code/kakao")
 
-  console.log("isSocialLoginCallback 확인: ", isSocialLoginCallback);
+  console.log("isSocialLoginCallback(href):", isSocialLoginCallback, href)
   if (isSocialLoginCallback) {
     // F12 개발자도구에서 응답 메시지와 쿠키가 보이는 경우, 응답 메시지가 <pre> 태그에 노출되는 경우가 많음
     let userData = null
