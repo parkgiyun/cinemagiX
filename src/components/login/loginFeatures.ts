@@ -61,7 +61,6 @@ export const SocialLoginButtons: React.FC = function SocialLoginButtons() {
   )
 }
 
-// 소셜 로그인 콜백 처리: 로그인 성공 시 홈페이지로 리다이렉트 및 사용자 정보 저장
 if (typeof window !== "undefined") {
   // 구글/카카오 소셜 로그인 콜백 URL 패턴에 대응
   const pathname = window.location.pathname
@@ -69,32 +68,22 @@ if (typeof window !== "undefined") {
     pathname.startsWith("/login/oauth2/code/google") ||
     pathname.startsWith("/login/oauth2/code/kakao")
 
+  console.log("isSocialLoginCallback 확인: ", isSocialLoginCallback);
   if (isSocialLoginCallback) {
-    // 서버에서 사용자 정보가 window.__SOCIAL_LOGIN_USER__로 전달된다고 가정 (SSR/템플릿에서 주입)
+    // F12 개발자도구에서 응답 메시지와 쿠키가 보이는 경우, 응답 메시지가 <pre> 태그에 노출되는 경우가 많음
     let userData = null
     try {
-      userData = (window as any).__SOCIAL_LOGIN_USER__
-    } catch (e) {}
-    if (!userData) {
-      try {
-        const el = document.getElementById("social-login-user-json")
-        if (el) userData = JSON.parse(el.textContent || "")
-      } catch (e) {}
-    }
-    // 만약 위 방식으로도 userData가 없으면, 응답 메시지에서 직접 파싱 시도 (예: 서버가 JSON을 렌더링)
-    if (!userData) {
-      try {
-        // body에 JSON이 그대로 노출된 경우 파싱 시도
-        const pre = document.querySelector("pre")
-        if (pre) {
-          const raw = pre.textContent || ""
-          const parsed = JSON.parse(raw)
-          if (parsed && parsed.data && parsed.data.user_id) {
-            userData = parsed.data
-          }
+      // <pre> 태그에서 JSON 응답 추출
+      const pre = document.querySelector("pre")
+      if (pre) {
+        const raw = pre.textContent || ""
+        const parsed = JSON.parse(raw)
+        if (parsed && parsed.data && parsed.data.user_id) {
+          userData = parsed.data
         }
-      } catch (e) {}
-    }
+      }
+    } catch (e) {}
+    // userData가 있으면 localStorage/sessionStorage에 저장
     if (userData && userData.user_id) {
       localStorage.setItem("user", JSON.stringify(userData))
       sessionStorage.setItem("user", JSON.stringify(userData))
