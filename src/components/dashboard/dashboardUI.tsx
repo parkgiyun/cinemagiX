@@ -664,6 +664,7 @@ export const DashboardContent = ({ user, onLogout, onUpdateUser }: DashboardCont
                         key={movie.id}
                         href={`/movie/${movie.id}`}
                         className="block bg-white rounded shadow hover:shadow-lg transition"
+                        style={{ width: "100px" }} // 겉박스의 가로 길이를 포스터에 맞춤
                       >
                         <div
                           className="flex items-center justify-center bg-gray-100 mx-auto rounded"
