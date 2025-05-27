@@ -50,9 +50,6 @@ export default function LoginPage() {
         localStorage.setItem("user", JSON.stringify(userData))
         sessionStorage.setItem("user", JSON.stringify(userData))
 
-        // 쿠키에도 저장 (추가적인 보안 조치)
-        document.cookie = `auth_token=${token}; path=/; max-age=600` // 10분 유효
-
         // 약간의 지연 후 리디렉션 (스토리지 저장 완료를 위해)
         setTimeout(() => {
           router.push("/") // 로그인 성공 후 홈 화면으로 이동
