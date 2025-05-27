@@ -10,9 +10,8 @@ import { makeImagePath, getMovieAllData } from "@/src/components/common/movieSer
 import styles from "./styles.module.css"
 import { useSelectedMovieForReservation } from "@/app/redux/reduxService"
 import { Header } from "@/src/components/common/Header"
-import { addFavoriteMovie, removeFavoriteMovie, isFavoriteMovie } from "@/src/components/common/movieService"
 
-// 6. Review 타입 정의에서 rating 타입을 number로 명시 (소수점 지원)
+// Review 타입 정의에서 rating 타입을 number로 명시 (소수점 지원)
 type Review = {
   id: number
   username: string
@@ -35,14 +34,13 @@ export default function MovieDetailPage() {
   const [error, setError] = useState("")
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [username, setUsername] = useState("")
-  const [isFavorite, setIsFavorite] = useState(false)
   // Redux에서 선택된 영화 ID 관리 훅 사용
   const { setSelectedMovie } = useSelectedMovieForReservation()
 
-  // 2. 상태 변수 수정 및 추가 (기존 reviews 상태 변수 부분 교체)
+  // 상태 변수 수정 및 추가 (기존 reviews 상태 변수 부분 교체)
   const [reviews, setReviews] = useState<Review[]>([])
   const [reviewText, setReviewText] = useState("")
-  // 1. 별점 상태 변수 타입을 number로 변경 (정수에서 소수점 지원으로)
+  // 별점 상태 변수 타입을 number로 변경 (정수에서 소수점 지원으로)
   const [userRating, setUserRating] = useState(0)
   const [hoverRating, setHoverRating] = useState(0)
   const [isSpoiler, setIsSpoiler] = useState(false)
@@ -55,7 +53,7 @@ export default function MovieDetailPage() {
   const [editIsSpoiler, setEditIsSpoiler] = useState(false)
   const [currentUserId, setCurrentUserId] = useState<number | null>(null)
 
-  // Check login status
+  // 로그인 상태 확인
   useEffect(() => {
     const checkLoginStatus = () => {
       const token = localStorage.getItem("token") || sessionStorage.getItem("token")
@@ -79,31 +77,7 @@ export default function MovieDetailPage() {
     checkLoginStatus()
   }, [])
 
-  useEffect(() => {
-    if (movie?.id) {
-      setIsFavorite(isFavoriteMovie(movie.id))
-    }
-  }, [movie])
-
-  // 영화 찜하기 및 취소 함수
-  const handleFavorite = () => {
-    if (!isLoggedIn) {
-      alert("로그인 후 이용 가능합니다.")
-      router.push("/login")
-      return
-    }
-    if (isFavorite) {
-      removeFavoriteMovie(movie.id)
-      setIsFavorite(false)
-      alert("찜 목록에서 제거되었습니다.")
-    } else {
-      addFavoriteMovie(movie.id)
-      setIsFavorite(true)
-      alert("찜한 영화에 추가되었습니다.")
-    }
-  }
-
-  // 리뷰 불러오기 함수
+  // 리뷰 불러오기 함수 추가
   const fetchReviews = async (movieId: number) => {
     try {
       setReviewLoading(true)
@@ -487,14 +461,9 @@ export default function MovieDetailPage() {
                 >
                   예매하기
                 </button>
-                <button
-                  className={`px-4 py-2 bg-transparent border border-gray-300 rounded-md hover:bg-gray-100 transition-colors flex items-center ${
-                    isFavorite ? "text-red-500 border-red-300" : "text-gray-700"
-                  }`}
-                  onClick={handleFavorite}
-                >
-                  <Heart className={`h-4 w-4 mr-1 ${isFavorite ? "fill-red-500" : ""}`} />
-                  {isFavorite ? "찜 취소" : "찜하기"}
+                <button className="px-4 py-2 bg-transparent border border-gray-300 text-gray-700 rounded-md hover:bg-gray-100 transition-colors flex items-center">
+                  <Heart className="h-4 w-4 mr-1" />
+                  찜하기
                 </button>
                 <button
                   className="px-4 py-2 bg-transparent border border-gray-300 text-gray-700 rounded-md hover:bg-gray-100 transition-colors flex items-center"
@@ -598,7 +567,7 @@ export default function MovieDetailPage() {
               <span className="ml-2 text-lg text-gray-500">({reviews.length})</span>
             </h2>
 
-            {/* 6. 리뷰 폼 UI 수정 (스포일러 체크박스 추가) - 리뷰 폼 부분 교체 */}
+            {/* 리뷰 폼 UI 수정 (스포일러 체크박스 추가) - 리뷰 폼 부분 교체 */}
             <div className="bg-gray-50 rounded-lg p-4 mb-8">
               <h3 className="text-lg font-semibold mb-3">리뷰 작성</h3>
               {editingReviewId ? (
@@ -689,7 +658,7 @@ export default function MovieDetailPage() {
                 </form>
               ) : (
                 <form onSubmit={handleReviewSubmit}>
-                  {/* 4. 리뷰 폼의 별점 선택 UI 부분 수정 (handleReviewSubmit 함수 아래에 있는 리뷰 폼 부분) */}
+                  {/* 리뷰 폼의 별점 선택 UI 부분 수정 (handleReviewSubmit 함수 아래에 있는 리뷰 폼 부분) */}
                   {/* 기존 별점 선택 UI를 아래 코드로 교체: */}
                   <div className="mb-4">
                     <label className="block text-sm font-medium text-gray-700 mb-1">평점</label>
@@ -788,7 +757,7 @@ export default function MovieDetailPage() {
               )}
             </div>
 
-            {/* 7. 리뷰 목록 UI 수정 (스포일러 처리 및 로딩 상태 추가) - 리뷰 목록 부분 교체 */}
+            {/* 리뷰 목록 UI 수정 (스포일러 처리 및 로딩 상태 추가) - 리뷰 목록 부분 교체 */}
             <div className="space-y-4">
               {reviewLoading ? (
                 <div className="flex justify-center items-center py-8">
