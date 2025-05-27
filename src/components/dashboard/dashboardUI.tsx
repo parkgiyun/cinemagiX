@@ -665,16 +665,19 @@ export const DashboardContent = ({ user, onLogout, onUpdateUser }: DashboardCont
                         href={`/movie/${movie.id}`}
                         className="block bg-white rounded shadow hover:shadow-lg transition"
                       >
-                        <img
-                          src={movie.poster_path ? movie.poster_path : "/placeholder.svg?height=300&width=200&text=No+Image"}
-                          alt={movie.title}
-                          className="w-full h-40 object-cover rounded-t"
-                          onError={(e) => {
-                            ;(e.target as HTMLImageElement).src = "/placeholder.svg?height=160&width=100"
-                          }}
-                        />
+                        <div className="w-full aspect-[2/3] bg-gray-100 flex items-center justify-center">
+                          <img
+                            src={movie.poster_path ? movie.poster_path : "/placeholder.svg?height=450&width=300&text=No+Image"}
+                            alt={movie.title}
+                            className="w-full h-full object-cover"
+                            style={{ aspectRatio: "2/3", display: "block" }}
+                            onError={(e) => {
+                              ;(e.target as HTMLImageElement).src = "/placeholder.svg?height=450&width=300"
+                            }}
+                          />
+                        </div>
                         <div className="p-2">
-                          <div className="font-medium text-sm">{movie.title}</div>
+                          <div className="font-medium text-sm truncate">{movie.title}</div>
                           <div className="text-xs text-gray-500">{movie.release_date?.substring(0, 10)}</div>
                         </div>
                       </Link>
