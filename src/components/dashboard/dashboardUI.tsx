@@ -598,7 +598,7 @@ export const DashboardContent = ({ user, onLogout, onUpdateUser }: DashboardCont
                                   alt={booking.movieTitle}
                                   className="w-16 h-24 object-cover rounded"
                                   onError={(e) => {
-                                    ;(e.target as HTMLImageElement).src = "/placeholder.svg?height=96&width=64"
+                                    ; (e.target as HTMLImageElement).src = "/placeholder.svg?height=96&width=64"
                                   }}
                                 />
                               )}
@@ -665,14 +665,17 @@ export const DashboardContent = ({ user, onLogout, onUpdateUser }: DashboardCont
                         href={`/movie/${movie.id}`}
                         className="block bg-white rounded shadow hover:shadow-lg transition"
                       >
-                        <div className="w-full flex items-center justify-center bg-gray-100" style={{ aspectRatio: "2/3", maxWidth: "140px", margin: "0 auto" }}>
+                        <div
+                          className="flex items-center justify-center bg-gray-100 mx-auto rounded"
+                          style={{ aspectRatio: "2/3", width: "100px", height: "150px" }}
+                        >
                           <img
-                            src={movie.poster_path ? movie.poster_path : "/placeholder.svg?height=315&width=210&text=No+Image"}
+                            src={movie.poster_path ? movie.poster_path : "/placeholder.svg?height=150&width=100&text=No+Image"}
                             alt={movie.title}
-                            className="w-full h-full object-cover"
-                            style={{ aspectRatio: "2/3", maxWidth: "140px", maxHeight: "210px", display: "block" }}
+                            className="w-full h-full object-cover rounded"
+                            style={{ aspectRatio: "2/3", width: "100px", height: "150px", display: "block" }}
                             onError={(e) => {
-                              ;(e.target as HTMLImageElement).src = "/placeholder.svg?height=315&width=210"
+                              ; (e.target as HTMLImageElement).src = "/placeholder.svg?height=150&width=100"
                             }}
                           />
                         </div>
