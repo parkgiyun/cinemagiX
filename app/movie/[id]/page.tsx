@@ -465,7 +465,20 @@ export default function MovieDetailPage() {
                   <Heart className="h-4 w-4 mr-1" />
                   찜하기
                 </button>
-                <button className="px-4 py-2 bg-transparent border border-gray-300 text-gray-700 rounded-md hover:bg-gray-100 transition-colors flex items-center">
+                <button
+                  className="px-4 py-2 bg-transparent border border-gray-300 text-gray-700 rounded-md hover:bg-gray-100 transition-colors flex items-center"
+                  onClick={() => {
+                    // 현재 페이지 URL을 클립보드에 복사
+                    const url = window.location.href
+                    navigator.clipboard.writeText(url)
+                      .then(() => {
+                        alert("현재 페이지 주소가 클립보드에 복사되었습니다.\n친구에게 공유해보세요!")
+                      })
+                      .catch(() => {
+                        alert("클립보드 복사에 실패했습니다. 브라우저가 지원되는지 확인해주세요.")
+                      })
+                  }}
+                >
                   <Share2 className="h-4 w-4 mr-1" />
                   공유하기
                 </button>
