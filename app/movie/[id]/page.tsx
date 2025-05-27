@@ -10,6 +10,7 @@ import { makeImagePath, getMovieAllData } from "@/src/components/common/movieSer
 import styles from "./styles.module.css"
 import { useSelectedMovieForReservation } from "@/app/redux/reduxService"
 import { Header } from "@/src/components/common/Header"
+import { addFavoriteMovie, removeFavoriteMovie, isFavoriteMovie } from "@/src/components/common/movieService"
 
 // 6. Review 타입 정의에서 rating 타입을 number로 명시 (소수점 지원)
 type Review = {
@@ -34,6 +35,7 @@ export default function MovieDetailPage() {
   const [error, setError] = useState("")
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [username, setUsername] = useState("")
+  const [isFavorite, setIsFavorite] = useState(false)
   // Redux에서 선택된 영화 ID 관리 훅 사용
   const { setSelectedMovie } = useSelectedMovieForReservation()
 
@@ -77,7 +79,31 @@ export default function MovieDetailPage() {
     checkLoginStatus()
   }, [])
 
-  // 3. 리뷰 불러오기 함수 추가 (useEffect 블록 위에 추가)
+  useEffect(() => {
+    if (movie?.id) {
+      setIsFavorite(isFavoriteMovie(movie.id))
+    }
+  }, [movie])
+
+  // 영화 찜하기 및 취소 함수
+  const handleFavorite = () => {
+    if (!isLoggedIn) {
+      alert("로그인 후 이용 가능합니다.")
+      router.push("/login")
+      return
+    }
+    if (isFavorite) {
+      removeFavoriteMovie(movie.id)
+      setIsFavorite(false)
+      alert("찜 목록에서 제거되었습니다.")
+    } else {
+      addFavoriteMovie(movie.id)
+      setIsFavorite(true)
+      alert("찜한 영화에 추가되었습니다.")
+    }
+  }
+
+  // 리뷰 불러오기 함수
   const fetchReviews = async (movieId: number) => {
     try {
       setReviewLoading(true)
@@ -150,21 +176,21 @@ export default function MovieDetailPage() {
   }, [localMovieId])
 
   // Handlers
-  // 2. 별점 선택 핸들러 수정 - 0.5 단위 지원
+  // 별점 선택 핸들러 수정 - 0.5 단위 지원
   const handleRatingClick = (rating: number, isHalf: boolean) => {
     // 반개 별점 경우 0.5 빼기
     const newRating = isHalf ? rating - 0.5 : rating
     setUserRating(newRating)
   }
 
-  // 3. 별점 호버 핸들러 수정 - 0.5 단위 지원
+  // 별점 호버 핸들러 수정 - 0.5 단위 지원
   const handleRatingHover = (rating: number, isHalf: boolean) => {
     // 반개 별점인 경우 0.5 빼기
     const newRating = isHalf ? rating - 0.5 : rating
     setHoverRating(newRating)
   }
 
-  // 4. 리뷰 저장 함수 수정 (handleReviewSubmit 함수 전체 교체)
+  // 리뷰 저장 함수 수정 (handleReviewSubmit 함수 전체 교체)
   const handleReviewSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
@@ -461,11 +487,29 @@ export default function MovieDetailPage() {
                 >
                   예매하기
                 </button>
-                <button className="px-4 py-2 bg-transparent border border-gray-300 text-gray-700 rounded-md hover:bg-gray-100 transition-colors flex items-center">
-                  <Heart className="h-4 w-4 mr-1" />
-                  찜하기
+                <button
+                  className={`px-4 py-2 bg-transparent border border-gray-300 rounded-md hover:bg-gray-100 transition-colors flex items-center ${
+                    isFavorite ? "text-red-500 border-red-300" : "text-gray-700"
+                  }`}
+                  onClick={handleFavorite}
+                >
+                  <Heart className={`h-4 w-4 mr-1 ${isFavorite ? "fill-red-500" : ""}`} />
+                  {isFavorite ? "찜 취소" : "찜하기"}
                 </button>
-                <button className="px-4 py-2 bg-transparent border border-gray-300 text-gray-700 rounded-md hover:bg-gray-100 transition-colors flex items-center">
+                <button
+                  className="px-4 py-2 bg-transparent border border-gray-300 text-gray-700 rounded-md hover:bg-gray-100 transition-colors flex items-center"
+                  onClick={() => {
+                    // 현재 페이지 URL을 클립보드에 복사
+                    const url = window.location.href
+                    navigator.clipboard.writeText(url)
+                      .then(() => {
+                        alert("현재 페이지 주소가 클립보드에 복사되었습니다.\n친구에게 공유해보세요!")
+                      })
+                      .catch(() => {
+                        alert("클립보드 복사에 실패했습니다. 브라우저가 지원되는지 확인해주세요.")
+                      })
+                  }}
+                >
                   <Share2 className="h-4 w-4 mr-1" />
                   공유하기
                 </button>

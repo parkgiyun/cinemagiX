@@ -200,3 +200,25 @@ export function movieTrailer(localId: string) {
   // 이 함수는 직접 사용되지 않고 URL만 반환하므로 간단히 처리
   return `${TMDB_BASE_URL}/movie/${localId}/videos?api_key=${API_KEY}`
 }
+
+// 찜한 영화 ID 목록을 localStorage에서 관리
+export const getFavoriteMovies = (): number[] => {
+  const data = localStorage.getItem("favoriteMovies")
+  return data ? JSON.parse(data) : []
+}
+
+export const addFavoriteMovie = (movieId: number) => {
+  const favorites = getFavoriteMovies()
+  if (!favorites.includes(movieId)) {
+    localStorage.setItem("favoriteMovies", JSON.stringify([movieId, ...favorites]))
+  }
+}
+
+export const removeFavoriteMovie = (movieId: number) => {
+  const favorites = getFavoriteMovies().filter((id) => id !== movieId)
+  localStorage.setItem("favoriteMovies", JSON.stringify(favorites))
+}
+
+export const isFavoriteMovie = (movieId: number): boolean => {
+  return getFavoriteMovies().includes(movieId)
+}
