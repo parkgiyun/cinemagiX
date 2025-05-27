@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { getFavoriteMovies, getMovie } from "../common/movieService"
 import {
   AlertCircle,
   CheckCircle,
@@ -273,6 +274,32 @@ export const DashboardContent = ({ user, onLogout, onUpdateUser }: DashboardCont
       setLoading(false)
     }
   }
+
+  // 찜한 영화 상태 추가
+  const [favoriteMovies, setFavoriteMovies] = useState<any[]>([])
+  const [favoriteLoading, setFavoriteLoading] = useState(false)
+
+  // 찜한 영화 불러오기
+  useEffect(() => {
+    const fetchFavorites = async () => {
+      setFavoriteLoading(true)
+      const ids = getFavoriteMovies()
+      const movies: any[] = []
+      for (const id of ids) {
+        try {
+          const movie = await getMovie(id.toString())
+          if (movie) {
+            movies.push(movie)
+          }
+        } catch (e) {
+          // 무시
+        }
+      }
+      setFavoriteMovies(movies)
+      setFavoriteLoading(false)
+    }
+    fetchFavorites()
+  }, [])
 
   useEffect(() => {
     // 주문+티켓 내역 불러오기 (orderId 포함)
@@ -614,6 +641,43 @@ export const DashboardContent = ({ user, onLogout, onUpdateUser }: DashboardCont
                           </div>
                         </CardContent>
                       </Card>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* 찜한 영화 섹션 추가 */}
+              <div className="space-y-3">
+                <h3 className="text-lg font-medium flex items-center">
+                  <span className="mr-2">❤️</span>찜한 영화
+                </h3>
+                {favoriteLoading ? (
+                  <div className="flex justify-center py-8">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                  </div>
+                ) : favoriteMovies.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">찜한 영화가 없습니다.</div>
+                ) : (
+                  <div className="grid grid-cols-2 gap-4">
+                    {favoriteMovies.map((movie) => (
+                      <Link
+                        key={movie.id}
+                        href={`/movie/${movie.id}`}
+                        className="block bg-white rounded shadow hover:shadow-lg transition"
+                      >
+                        <img
+                          src={movie.poster_path ? movie.poster_path : "/placeholder.svg?height=300&width=200&text=No+Image"}
+                          alt={movie.title}
+                          className="w-full h-40 object-cover rounded-t"
+                          onError={(e) => {
+                            ;(e.target as HTMLImageElement).src = "/placeholder.svg?height=160&width=100"
+                          }}
+                        />
+                        <div className="p-2">
+                          <div className="font-medium text-sm">{movie.title}</div>
+                          <div className="text-xs text-gray-500">{movie.release_date?.substring(0, 10)}</div>
+                        </div>
+                      </Link>
                     ))}
                   </div>
                 )}
