@@ -598,7 +598,7 @@ export const DashboardContent = ({ user, onLogout, onUpdateUser }: DashboardCont
                                   alt={booking.movieTitle}
                                   className="w-16 h-24 object-cover rounded"
                                   onError={(e) => {
-                                    ; (e.target as HTMLImageElement).src = "/placeholder.svg?height=96&width=64"
+                                    ;(e.target as HTMLImageElement).src = "/placeholder.svg?height=96&width=64"
                                   }}
                                 />
                               )}
@@ -664,22 +664,21 @@ export const DashboardContent = ({ user, onLogout, onUpdateUser }: DashboardCont
                         key={movie.id}
                         href={`/movie/${movie.id}`}
                         className="block bg-white rounded shadow hover:shadow-lg transition"
-                        style={{ width: "100px" }} // 겉박스의 가로 길이를 포스터에 맞춤
                       >
                         <div
-                          className="flex items-center justify-center bg-gray-100 mx-auto rounded"
-                          style={{ aspectRatio: "2/3", width: "100px", height: "150px" }}
-                        >
-                          <img
-                            src={movie.poster_path ? movie.poster_path : "/placeholder.svg?height=150&width=100&text=No+Image"}
-                            alt={movie.title}
-                            className="w-full h-full object-cover rounded"
-                            style={{ aspectRatio: "2/3", width: "100px", height: "150px", display: "block" }}
-                            onError={(e) => {
-                              ; (e.target as HTMLImageElement).src = "/placeholder.svg?height=150&width=100"
-                            }}
-                          />
-                        </div>
+  className="flex items-center justify-center bg-gray-100 mx-auto rounded"
+  style={{ aspectRatio: "2/3", width: "100px", height: "150px" }}
+>
+  <img
+    src={movie.poster_path ? movie.poster_path : "/placeholder.svg?height=150&width=100&text=No+Image"}
+    alt={movie.title}
+    className="w-full h-full object-cover rounded"
+    style={{ aspectRatio: "2/3", width: "100px", height: "150px", display: "block" }}
+    onError={(e) => {
+      ;(e.target as HTMLImageElement).src = "/placeholder.svg?height=150&width=100"
+    }}
+  />
+</div>
                         <div className="p-2">
                           <div className="font-medium text-sm truncate">{movie.title}</div>
                           <div className="text-xs text-gray-500">{movie.release_date?.substring(0, 10)}</div>
