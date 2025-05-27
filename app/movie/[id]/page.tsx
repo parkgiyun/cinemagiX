@@ -83,6 +83,9 @@ export default function MovieDetailPage() {
       setReviewLoading(true)
       const response = await fetch(
         `https://hs-cinemagix.duckdns.org/api/v1/review/getReviewsByMovie?movieId=${movieId}`,
+        {
+          credentials: "include", // JWT 인증을 위한 쿠키 전송
+        }
       )
 
       if (!response.ok) {
