@@ -665,14 +665,14 @@ export const DashboardContent = ({ user, onLogout, onUpdateUser }: DashboardCont
                         href={`/movie/${movie.id}`}
                         className="block bg-white rounded shadow hover:shadow-lg transition"
                       >
-                        <div className="w-full aspect-[2/3] bg-gray-100 flex items-center justify-center">
+                        <div className="w-full flex items-center justify-center bg-gray-100" style={{ aspectRatio: "2/3", maxWidth: "140px", margin: "0 auto" }}>
                           <img
-                            src={movie.poster_path ? movie.poster_path : "/placeholder.svg?height=450&width=300&text=No+Image"}
+                            src={movie.poster_path ? movie.poster_path : "/placeholder.svg?height=315&width=210&text=No+Image"}
                             alt={movie.title}
                             className="w-full h-full object-cover"
-                            style={{ aspectRatio: "2/3", display: "block" }}
+                            style={{ aspectRatio: "2/3", maxWidth: "140px", maxHeight: "210px", display: "block" }}
                             onError={(e) => {
-                              ;(e.target as HTMLImageElement).src = "/placeholder.svg?height=450&width=300"
+                              ;(e.target as HTMLImageElement).src = "/placeholder.svg?height=315&width=210"
                             }}
                           />
                         </div>
