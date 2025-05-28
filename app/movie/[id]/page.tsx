@@ -253,10 +253,10 @@ export default function MovieDetailPage() {
     }
 
     // 본인 리뷰가 이미 있는지 확인
-    if (reviews.some(r => r.userId === currentUserId)) {
-      alert("이미 작성한 리뷰가 있습니다. 리뷰는 한 번만 작성할 수 있습니다.");
-      return;
-    }
+  if (reviews.some(r => Number(r.userId) === Number(currentUserId))) {
+    alert("이미 작성한 리뷰가 있습니다. 리뷰는 한 번만 작성할 수 있습니다.");
+    return;
+  }
 
     if (userRating === 0) {
       alert("평점을 선택해주세요.")
