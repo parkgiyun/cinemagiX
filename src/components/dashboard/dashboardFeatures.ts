@@ -248,7 +248,7 @@ export const sendVerificationCode = async (email: string): Promise<{ success: bo
   }
 
   try {
-    const response = await axios.post("/api/auth/send", { email })
+    const response = await axios.post("/api/auth/verifyEmail", { email })
 
     console.log("인증 코드 전송 응답:", response.data)
 
