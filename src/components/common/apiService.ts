@@ -418,24 +418,26 @@ export const fetchAIRecommendedMovies = async (userId: number) => {
       Accept: "*/*",
     }
 
-    /*
+
     const response = await axios.get(`${API_BASE_URL}/v1/AIRecommand/getByUser?userId=${userId}`, {
       headers,
       withCredentials: true,
     })
-    */
 
 
+
+    /*
     const response = await axios.get(
       `${API_BASE_URL}/v1/AIRecommand/getByUser?userId=${userId}`,
       {
         headers: {
           "Content-Type": "application/json",
-          Accept: "*/*",
+          
         },
         withCredentials: true,
       }
     );
+    */
 
 
 
@@ -474,10 +476,7 @@ export const refreshAIRecommendedMovies = async (userId: number, type: string) =
       `${API_BASE_URL}/v1/AIRecommand/synopsisV2?userId=${userId}&type=${type}`,
       {},
       {
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "*/*",
-        },
+        headers,
         withCredentials: true,
       }
     );
