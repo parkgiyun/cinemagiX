@@ -252,6 +252,12 @@ export default function MovieDetailPage() {
       return
     }
 
+    // 본인 리뷰가 이미 있는지 확인
+    if (reviews.some(r => r.userId === currentUserId)) {
+      alert("이미 작성한 리뷰가 있습니다. 리뷰는 한 번만 작성할 수 있습니다.");
+      return;
+    }
+
     if (userRating === 0) {
       alert("평점을 선택해주세요.")
       return
@@ -411,24 +417,13 @@ export default function MovieDetailPage() {
   // 리뷰 수정 제출
   const handleEditReviewSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!isLoggedIn) {
-      alert("리뷰를 작성하려면 로그인이 필요합니다.")
-      router.push("/login")
-      return
-    }
-
-    // 본인 리뷰가 이미 있는지 확인
-    if (reviews.some(r => r.userId === currentUserId)) {
-      alert("이미 작성한 리뷰가 있습니다. 리뷰는 한 번만 작성할 수 있습니다.")
-      return
-    }
-
-    if (userRating === 0) {
+    if (!editingReviewId) return
+    if (!currentUserId) return
+    if (editUserRating === 0) {
       alert("평점을 선택해주세요.")
       return
     }
-
-    if (!reviewText.trim()) {
+    if (!editReviewText.trim()) {
       alert("리뷰 내용을 입력해주세요.")
       return
     }
