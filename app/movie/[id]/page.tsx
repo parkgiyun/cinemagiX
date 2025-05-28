@@ -150,7 +150,7 @@ export default function MovieDetailPage() {
         text: review.review,
         date: review.review_date,
         spoiler: review.spoiler,
-        userId: review.userId,
+        userId: review.userId ?? review.user_id, 
       }))
 
       setReviews(formattedReviews)
