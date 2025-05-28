@@ -57,6 +57,12 @@ export default function MovieDetailPage() {
   const [reviewLikes, setReviewLikes] = useState<{ [reviewId: number]: number }>({});
   const [reviewLikedByMe, setReviewLikedByMe] = useState<{ [reviewId: number]: boolean }>({});
 
+  // 스포일러 표시 여부 관리
+  const [spoilerRevealed, setSpoilerRevealed] = useState<{ [reviewId: number]: boolean }>({});
+  const handleRevealSpoiler = (reviewId: number) => {
+    setSpoilerRevealed((prev) => ({ ...prev, [reviewId]: true }));
+  };
+
   // 리뷰 불러오기 및 좋아요 정보 업데이트
   useEffect(() => {
     if (reviews.length > 0 && currentUserId) {
@@ -101,7 +107,7 @@ export default function MovieDetailPage() {
             const data = await res.json();
             likes[review.id] = data.likeCount;
           }
-        } catch {}
+        } catch { }
         // 내가 좋아요 눌렀는지
         if (userId) {
           try {
@@ -109,7 +115,7 @@ export default function MovieDetailPage() {
             if (res.ok) {
               liked[review.id] = await res.json();
             }
-          } catch {}
+          } catch { }
         }
       })
     );
@@ -502,7 +508,7 @@ export default function MovieDetailPage() {
               className={styles.poster}
               alt={movie.title}
               onError={(e) => {
-                ;(e.target as HTMLImageElement).src = "/placeholder.svg?height=300&width=200&text=No+Image"
+                ; (e.target as HTMLImageElement).src = "/placeholder.svg?height=300&width=200&text=No+Image"
               }}
             />
             <div className={styles.info}>
@@ -550,7 +556,7 @@ export default function MovieDetailPage() {
                     src={`https://flagsapi.com/${movie.origin_country[0]}/flat/32.png`}
                     alt={`${movie.origin_country[0]} flag`}
                     onError={(e) => {
-                      ;(e.target as HTMLImageElement).style.display = "none"
+                      ; (e.target as HTMLImageElement).style.display = "none"
                     }}
                   />
                   {movie.production_companies &&
@@ -561,7 +567,7 @@ export default function MovieDetailPage() {
                         src={makeImagePath(movie.production_companies[0].logo_path || "")}
                         alt={movie.production_companies[0].name || "Production company"}
                         onError={(e) => {
-                          ;(e.target as HTMLImageElement).style.display = "none"
+                          ; (e.target as HTMLImageElement).style.display = "none"
                         }}
                       />
                     )}
@@ -643,9 +649,8 @@ export default function MovieDetailPage() {
                             onClick={() => setEditUserRating(rating - 0.5)}
                           >
                             <Star
-                              className={`h-6 w-6 -ml-0 ${
-                                editUserRating >= rating - 0.5 ? "text-yellow-400 fill-yellow-400" : "text-gray-300"
-                              }`}
+                              className={`h-6 w-6 -ml-0 ${editUserRating >= rating - 0.5 ? "text-yellow-400 fill-yellow-400" : "text-gray-300"
+                                }`}
                             />
                           </div>
                           {/* 별의 오른쪽 절반 (1.0) */}
@@ -654,9 +659,8 @@ export default function MovieDetailPage() {
                             onClick={() => setEditUserRating(rating)}
                           >
                             <Star
-                              className={`h-6 w-6 -ml-3 ${
-                                editUserRating >= rating ? "text-yellow-400 fill-yellow-400" : "text-gray-300"
-                              }`}
+                              className={`h-6 w-6 -ml-3 ${editUserRating >= rating ? "text-yellow-400 fill-yellow-400" : "text-gray-300"
+                                }`}
                             />
                           </div>
                         </div>
@@ -706,9 +710,8 @@ export default function MovieDetailPage() {
                     <button
                       type="submit"
                       disabled={reviewSubmitting}
-                      className={`px-4 py-2 rounded-md flex items-center ${
-                        !reviewSubmitting ? "bg-primary text-white hover:bg-primary/90" : "bg-gray-300 text-gray-500 cursor-not-allowed"
-                      }`}
+                      className={`px-4 py-2 rounded-md flex items-center ${!reviewSubmitting ? "bg-primary text-white hover:bg-primary/90" : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                        }`}
                     >
                       {reviewSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                       {reviewSubmitting ? "수정 중..." : "수정 완료"}
@@ -731,11 +734,10 @@ export default function MovieDetailPage() {
                             onMouseLeave={() => handleRatingHover(0, false)}
                           >
                             <Star
-                              className={`h-6 w-6 -ml-0 ${
-                                (hoverRating || userRating) >= rating - 0.5
-                                  ? "text-yellow-400 fill-yellow-400"
-                                  : "text-gray-300"
-                              }`}
+                              className={`h-6 w-6 -ml-0 ${(hoverRating || userRating) >= rating - 0.5
+                                ? "text-yellow-400 fill-yellow-400"
+                                : "text-gray-300"
+                                }`}
                             />
                           </div>
                           {/* 별의 오른쪽 절반 (1.0) */}
@@ -746,11 +748,10 @@ export default function MovieDetailPage() {
                             onMouseLeave={() => handleRatingHover(0, false)}
                           >
                             <Star
-                              className={`h-6 w-6 -ml-3 ${
-                                (hoverRating || userRating) >= rating
-                                  ? "text-yellow-400 fill-yellow-400"
-                                  : "text-gray-300"
-                              }`}
+                              className={`h-6 w-6 -ml-3 ${(hoverRating || userRating) >= rating
+                                ? "text-yellow-400 fill-yellow-400"
+                                : "text-gray-300"
+                                }`}
                             />
                           </div>
                         </div>
@@ -797,11 +798,10 @@ export default function MovieDetailPage() {
                     <button
                       type="submit"
                       disabled={!isLoggedIn || reviewSubmitting}
-                      className={`px-4 py-2 rounded-md flex items-center ${
-                        isLoggedIn && !reviewSubmitting
-                          ? "bg-primary text-white hover:bg-primary/90"
-                          : "bg-gray-300 text-gray-500 cursor-not-allowed"
-                      }`}
+                      className={`px-4 py-2 rounded-md flex items-center ${isLoggedIn && !reviewSubmitting
+                        ? "bg-primary text-white hover:bg-primary/90"
+                        : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                        }`}
                     >
                       {reviewSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                       {reviewSubmitting ? "등록 중..." : "리뷰 등록"}
@@ -862,20 +862,18 @@ export default function MovieDetailPage() {
                         </div>
                         {/* 좋아요 버튼 */}
                         <button
-                          className={`flex items-center px-2 py-1 text-xs rounded transition ${
-                            reviewLikedByMe[review.id]
-                              ? "bg-pink-100 text-pink-600"
-                              : "bg-gray-100 text-gray-500 hover:bg-pink-50"
-                          }`}
+                          className={`flex items-center px-2 py-1 text-xs rounded transition ${reviewLikedByMe[review.id]
+                            ? "bg-pink-100 text-pink-600"
+                            : "bg-gray-100 text-gray-500 hover:bg-pink-50"
+                            }`}
                           onClick={() => handleToggleLike(review.id)}
                           disabled={!isLoggedIn}
                           title={isLoggedIn ? "좋아요" : "로그인 필요"}
                           style={{ minWidth: 48 }}
                         >
                           <Heart
-                            className={`h-4 w-4 mr-1 ${
-                              reviewLikedByMe[review.id] ? "fill-pink-500 text-pink-500" : "text-gray-400"
-                            }`}
+                            className={`h-4 w-4 mr-1 ${reviewLikedByMe[review.id] ? "fill-pink-500 text-pink-500" : "text-gray-400"
+                              }`}
                             fill={reviewLikedByMe[review.id] ? "#ec4899" : "none"}
                           />
                           {reviewLikes[review.id] ?? 0}
@@ -902,13 +900,21 @@ export default function MovieDetailPage() {
                       </div>
                     </div>
                     {review.spoiler ? (
-                      <div className="relative">
-                        <p className="text-gray-700 blur-sm hover:blur-none transition-all duration-300">
+                      <div
+                        className="relative cursor-pointer"
+                        onClick={() => handleRevealSpoiler(review.id)}
+                        tabIndex={0}
+                        role="button"
+                        aria-label="스포일러 보기"
+                      >
+                        <p className={`text-gray-700 transition-all duration-300 ${spoilerRevealed[review.id] ? "" : "blur-sm"}`}>
                           {review.text}
                         </p>
-                        <div className="absolute top-0 left-0 bg-gray-100 px-2 py-1 rounded text-xs text-red-500 font-medium">
-                          스포일러 주의 (클릭하여 보기)
-                        </div>
+                        {!spoilerRevealed[review.id] && (
+                          <div className="absolute top-0 left-0 bg-gray-100 px-2 py-1 rounded text-xs text-red-500 font-medium pointer-events-none">
+                            스포일러 주의 (클릭하여 보기)
+                          </div>
+                        )}
                       </div>
                     ) : (
                       <p className="text-gray-700">{review.text}</p>
