@@ -32,6 +32,8 @@ import { cancelOrder } from "../common/apiService"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useRegion, useTheather } from "@/app/redux/reduxService"
+// 내 영화관 지정
+import { updateMyTheater } from "@/src/components/common/apiService";
 
 interface DashboardContentProps {
   user: UserData
@@ -517,13 +519,28 @@ export const DashboardContent = ({ user, onLogout, onUpdateUser }: DashboardCont
                     ))}
                   </select>
                   <Button
-                    onClick={() => {
-                      // 내 영화관 저장 로직
-                      setSuccess("내 영화관이 저장되었습니다.")
-                      // 로컬 스토리지에도 저장
-                      localStorage.setItem("preferredTheater", selectedTheater)
-                      // 부모 컴포넌트에 알려 상태 업데이트
-                      onUpdateUser("preferredTheater", selectedTheater)
+                    onClick={async () => {
+                      setSuccess("");
+                      setError("");
+                      try {
+                        // user_id와 spot_id(영화관 id) 추출
+                        const userId = user.user_id || user.id;
+                        // selectedTheater는 "지역명 극장명점" 형태이므로, theaterList에서 id 추출
+                        const theaterObj = theaterList.find(t => `${regionList.find(r => r.id === t.region_id)?.name} ${t.name}점` === selectedTheater);
+                        if (!theaterObj) throw new Error("영화관 정보를 찾을 수 없습니다.");
+
+                        // API 호출
+                        const res = await updateMyTheater(userId, [theaterObj.id]);
+                        if (res.code === "SUCCESS") {
+                          setSuccess("내 영화관이 저장되었습니다.");
+                          // 부모 컴포넌트에 알려 상태 업데이트
+                          onUpdateUser("preferredTheater", selectedTheater);
+                        } else {
+                          setError("내 영화관 저장에 실패했습니다.");
+                        }
+                      } catch (err: any) {
+                        setError(err.message || "내 영화관 저장 중 오류가 발생했습니다.");
+                      }
                     }}
                     disabled={!selectedTheater || selectedTheater === user.preferredTheater}
                   >
@@ -571,7 +588,7 @@ export const DashboardContent = ({ user, onLogout, onUpdateUser }: DashboardCont
                                   alt={booking.movieTitle}
                                   className="w-16 h-24 object-cover rounded"
                                   onError={(e) => {
-                                    ;(e.target as HTMLImageElement).src = "/placeholder.svg?height=96&width=64"
+                                    ; (e.target as HTMLImageElement).src = "/placeholder.svg?height=96&width=64"
                                   }}
                                 />
                               )}

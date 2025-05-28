@@ -12,6 +12,7 @@ import { fetchSpotAndDate } from "@/src/components/common/apiService"
 import { calcFinishTime } from "@/src/components/common/timeClacService"
 import { MapPin, Clock } from "lucide-react"
 import { theaterAddresses, theaterImages } from "@/src/components/common/theaterData"
+import { getMyTheater } from "@/src/components/common/apiService";
 
 interface SelectedTheaterProps {
   setMemoActiveStep: (id: number) => void
@@ -76,29 +77,31 @@ const SelectedTheater: React.FC<SelectedTheaterProps> = ({
 
   const [theaterStep, setTheatherStep] = useState(0)
 
-  // 사용자의 선호 영화관 정보를 가져오는 함수
-  const getPreferredTheaterInfo = () => {
-    const preferredTheater = localStorage.getItem("preferredTheater")
-    if (!preferredTheater) return null
-
-    // 형식: "지역명 극장명점" (예: "서울 강남점")
-    const parts = preferredTheater.split(" ")
-    if (parts.length < 2) return null
-
-    const regionName = parts[0]
-    // "점"을 제거한 극장명
-    const theaterName = parts[1].endsWith("점") ? parts[1].substring(0, parts[1].length - 1) : parts[1]
-
-    // 지역 ID 찾기
-    const region = regionList.find((r) => r.name === regionName)
-    if (!region) return null
-
-    // 극장 ID 찾기
-    const theater = theaterList.find((t) => t.region_id === region.id && t.name === theaterName)
-    if (!theater) return null
-
-    return { regionId: region.id, theaterId: theater.id }
+  // 선호 영화관 정보를 API에서 불러오는 함수
+const getPreferredTheaterInfo = async () => {
+  // userId를 localStorage/sessionStorage에서 가져오거나, 로그인 상태에서 받아옴
+  const userStr = localStorage.getItem("user") || sessionStorage.getItem("user");
+  if (!userStr) return null;
+  let userId = null;
+  try {
+    const userData = JSON.parse(userStr);
+    userId = userData.user_id || userData.id;
+  } catch {
+    return null;
   }
+  if (!userId) return null;
+
+  // API 호출
+  const res = await getMyTheater(userId);
+  if (!res || !res.myTheatherList || res.myTheatherList.length === 0) return null;
+  const spotId = res.myTheatherList[0].spot_id;
+  // spotId로 region/theater 찾기
+  const theater = theaterList.find(t => t.id === spotId);
+  if (!theater) return null;
+  const region = regionList.find(r => r.id === theater.region_id);
+  if (!region) return null;
+  return { regionId: region.id, theaterId: theater.id };
+};
 
   const handleRegionSelect = (regionId: number) => {
     setSelectedRegion(regionId)
@@ -250,19 +253,20 @@ const SelectedTheater: React.FC<SelectedTheaterProps> = ({
   }, [movieRunningDetail, theaterStep])
 
   useEffect(() => {
-    // 선호 영화관 설정
-    const preferredTheater = getPreferredTheaterInfo()
+  // 선호 영화관 설정 (API에서 불러오기)
+  const fetchPreferredTheater = async () => {
+    const preferredTheater = await getPreferredTheaterInfo();
     if (preferredTheater) {
-      console.log("선호 영화관 자동 선택:", preferredTheater)
-      setSelectedRegion(preferredTheater.regionId)
-      // 약간의 지연 후 극장 선택 (지역 선택 후 필터링된 극장 목록이 업데이트되도록)
+      setSelectedRegion(preferredTheater.regionId);
       setTimeout(() => {
-        setSelectedTheater(preferredTheater.theaterId)
-        setTheatherStep(2) // 영화 선택 단계로 자동 진행
-        scrollAni(movieListRef)
-      }, 100)
+        setSelectedTheater(preferredTheater.theaterId);
+        setTheatherStep(2);
+        scrollAni(movieListRef);
+      }, 100);
     }
-  }, [regionList, theaterList])
+  };
+  fetchPreferredTheater();
+}, [regionList, theaterList]);
 
   return (
     <div className="container mx-auto py-6 px-4 md:px-6">
