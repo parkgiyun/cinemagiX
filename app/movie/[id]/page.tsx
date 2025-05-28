@@ -370,27 +370,27 @@ export default function MovieDetailPage() {
 
   // 리뷰 삭제 함수
   const handleDeleteReview = async (reviewId: number) => {
-  if (!window.confirm("리뷰를 삭제하시겠습니까?")) return
-  if (!currentUserId) return
-  try {
-    const token = localStorage.getItem("token") || sessionStorage.getItem("token")
-    const response = await fetch(
-      `https://hs-cinemagix.duckdns.org/api/v1/review/deleteReview/${reviewId}?userId=${currentUserId}`,
-      {
-        method: "DELETE",
-        headers: {
-          Authorization: token ? `Bearer ${token}` : "",
-        },
-      }
-    )
-    if (!response.ok) throw new Error("리뷰 삭제 실패")
-    setReviews(reviews.filter((r) => r.id !== reviewId))
-    fetchLikeInfo(reviews.filter((r) => r.id !== reviewId), currentUserId)
-    alert("리뷰가 삭제되었습니다.")
-  } catch (err) {
-    alert("리뷰 삭제 중 오류가 발생했습니다.")
+    if (!window.confirm("리뷰를 삭제하시겠습니까?")) return
+    if (!currentUserId) return
+    try {
+      const token = localStorage.getItem("token") || sessionStorage.getItem("token")
+      const response = await fetch(
+        `https://hs-cinemagix.duckdns.org/api/v1/review/deleteReview/${reviewId}?userId=${currentUserId}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: token ? `Bearer ${token}` : "",
+          },
+        }
+      )
+      if (!response.ok) throw new Error("리뷰 삭제 실패")
+      setReviews(reviews.filter((r) => r.id !== reviewId))
+      fetchLikeInfo(reviews.filter((r) => r.id !== reviewId), currentUserId)
+      alert("리뷰가 삭제되었습니다.")
+    } catch (err) {
+      alert("리뷰 삭제 중 오류가 발생했습니다.")
+    }
   }
-}
 
   // 리뷰 수정 시작
   const handleEditReview = (review: Review) => {
@@ -411,12 +411,24 @@ export default function MovieDetailPage() {
   // 리뷰 수정 제출
   const handleEditReviewSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!editingReviewId || !currentUserId) return
-    if (editUserRating === 0) {
+    if (!isLoggedIn) {
+      alert("리뷰를 작성하려면 로그인이 필요합니다.")
+      router.push("/login")
+      return
+    }
+
+    // 본인 리뷰가 이미 있는지 확인
+    if (reviews.some(r => r.userId === currentUserId)) {
+      alert("이미 작성한 리뷰가 있습니다. 리뷰는 한 번만 작성할 수 있습니다.")
+      return
+    }
+
+    if (userRating === 0) {
       alert("평점을 선택해주세요.")
       return
     }
-    if (!editReviewText.trim()) {
+
+    if (!reviewText.trim()) {
       alert("리뷰 내용을 입력해주세요.")
       return
     }
@@ -715,7 +727,11 @@ export default function MovieDetailPage() {
                   <div className="flex justify-end gap-2">
                     <button
                       type="button"
-                      onClick={handleCancelEdit}
+                      onClick={e => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handleCancelEdit();
+                      }}
                       className="px-4 py-2 rounded-md bg-gray-200 text-gray-700 hover:bg-gray-300"
                       disabled={reviewSubmitting}
                     >
