@@ -1,4 +1,5 @@
 "use client"
+import axios from "axios"
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
@@ -72,8 +73,8 @@ export default function RegisterPage() {
     setError("")
 
     try {
-      const response = await verifyEmailCode(email, code)
-      if (response === "SUCCESS") {
+    const response = await axios.post("https://hs-cinemagix.duckdns.org/api/v1/user/check", { email, code })
+      if (response.data === "SUCCESS") {
         setVerificationSuccess(true)
       } else {
         setError("인증 코드가 올바르지 않습니다.")
