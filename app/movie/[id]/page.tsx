@@ -53,6 +53,10 @@ export default function MovieDetailPage() {
   const [editIsSpoiler, setEditIsSpoiler] = useState(false)
   const [currentUserId, setCurrentUserId] = useState<number | null>(null)
 
+  // 리뷰 좋아요 관리
+  const [reviewLikes, setReviewLikes] = useState<{ [reviewId: number]: number }>({});
+  const [reviewLikedByMe, setReviewLikedByMe] = useState<{ [reviewId: number]: boolean }>({});
+
   // 로그인 상태 확인
   useEffect(() => {
     const checkLoginStatus = () => {
@@ -77,6 +81,35 @@ export default function MovieDetailPage() {
     checkLoginStatus()
   }, [])
 
+  // 리뷰별 좋아요 개수와 내가 좋아요 눌렀는지 불러오는 함수
+  const fetchLikeInfo = async (reviews: Review[], userId: number | null) => {
+    const likes: { [reviewId: number]: number } = {};
+    const liked: { [reviewId: number]: boolean } = {};
+    await Promise.all(
+      reviews.map(async (review) => {
+        // 좋아요 개수
+        try {
+          const res = await fetch(`https://hs-cinemagix.duckdns.org/api/v1/review/getLikeCount?reviewId=${review.id}`);
+          if (res.ok) {
+            const data = await res.json();
+            likes[review.id] = data.likeCount;
+          }
+        } catch {}
+        // 내가 좋아요 눌렀는지
+        if (userId) {
+          try {
+            const res = await fetch(`https://hs-cinemagix.duckdns.org/api/v1/review/isLiked?userId=${userId}&reviewId=${review.id}`);
+            if (res.ok) {
+              liked[review.id] = await res.json();
+            }
+          } catch {}
+        }
+      })
+    );
+    setReviewLikes(likes);
+    setReviewLikedByMe(liked);
+  };
+
   // 리뷰 불러오기 함수 추가
   const fetchReviews = async (movieId: number) => {
     try {
@@ -93,8 +126,6 @@ export default function MovieDetailPage() {
       }
 
       const data = await response.json()
-      console.log("불러온 리뷰 데이터:", data)
-
       // API 응답 데이터를 Review 타입에 맞게 변환
       const formattedReviews: Review[] = data.map((review: any) => ({
         id: review.id,
@@ -103,9 +134,12 @@ export default function MovieDetailPage() {
         text: review.review,
         date: review.review_date,
         spoiler: review.spoiler,
+        userId: review.userId,
       }))
 
       setReviews(formattedReviews)
+      // 좋아요 정보도 불러오기
+      fetchLikeInfo(formattedReviews, currentUserId)
     } catch (error) {
       console.error("리뷰 불러오기 오류:", error)
       setReviewError("리뷰를 불러오는데 실패했습니다.")
@@ -119,8 +153,6 @@ export default function MovieDetailPage() {
     const fetchMovieData = async () => {
       setLoading(true)
       try {
-        console.log("영화 데이터 로딩 시작 (로컬 ID):", localMovieId)
-
         // 모든 영화 데이터를 한 번에 가져오기
         const allData = await getMovieAllData(localMovieId)
 
@@ -130,7 +162,6 @@ export default function MovieDetailPage() {
 
         // 영화 정보 로드 후 로컬 ID로 리뷰 불러오기
         if (allData.movie && allData.movie.id) {
-          console.log("로컬 영화 ID로 리뷰 불러오기:", allData.movie.id)
           fetchReviews(allData.movie.id)
         } else {
           console.error("영화의 로컬 ID를 찾을 수 없습니다.")
@@ -147,9 +178,9 @@ export default function MovieDetailPage() {
     if (localMovieId) {
       fetchMovieData()
     }
+    // eslint-disable-next-line
   }, [localMovieId])
 
-  // Handlers
   // 별점 선택 핸들러 수정 - 0.5 단위 지원
   const handleRatingClick = (rating: number, isHalf: boolean) => {
     // 반개 별점 경우 0.5 빼기
@@ -164,7 +195,26 @@ export default function MovieDetailPage() {
     setHoverRating(newRating)
   }
 
-  // 리뷰 저장 함수 수정 (handleReviewSubmit 함수 전체 교체)
+  // 좋아요 토글 핸들러
+  const handleToggleLike = async (reviewId: number) => {
+    if (!isLoggedIn || !currentUserId) {
+      alert("로그인 후 이용 가능합니다.");
+      router.push("/login");
+      return;
+    }
+    try {
+      await fetch(`https://hs-cinemagix.duckdns.org/api/v1/review/likeToggle?userId=${currentUserId}&reviewId=${reviewId}`, {
+        method: "POST",
+        credentials: "include",
+      });
+      // 상태 갱신
+      fetchLikeInfo(reviews, currentUserId);
+    } catch {
+      alert("좋아요 처리 중 오류가 발생했습니다.");
+    }
+  };
+
+  // 리뷰 저장 함수
   const handleReviewSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
@@ -220,8 +270,6 @@ export default function MovieDetailPage() {
         movieId: movieId,
       }
 
-      console.log("저장할 리뷰 데이터:", reviewData)
-
       const response = await fetch("https://hs-cinemagix.duckdns.org/api/v1/review/reviews", {
         method: "POST",
         headers: {
@@ -240,16 +288,14 @@ export default function MovieDetailPage() {
       } else {
         responseData = await response.text()
       }
-      console.log("서버 응답:", response.status, responseData)
 
       if (!response.ok) {
-        // JSON이면 message, 아니면 전체 텍스트
         throw new Error(isJson ? (responseData.message || "리뷰 저장에 실패했습니다.") : responseData)
       }
 
       // UI에 표시할 새 리뷰 객체 생성
       const newReview: Review = {
-        id: isJson ? (responseData.id || Date.now()) : Date.now(), // 서버에서 반환한 ID 사용
+        id: isJson ? (responseData.id || Date.now()) : Date.now(),
         username: username,
         rating: userRating,
         text: reviewText,
@@ -260,13 +306,12 @@ export default function MovieDetailPage() {
 
       // UI에 리뷰 추가
       setReviews([newReview, ...reviews])
+      fetchLikeInfo([newReview, ...reviews], currentUserId)
 
       // 입력 필드 초기화
       setReviewText("")
       setUserRating(0)
       setIsSpoiler(false)
-      console.log("서버 응답 테스트:", response.status, responseData)
-      // 성공 메시지 표시
       alert("리뷰가 등록되었습니다.")
     } catch (error) {
       console.error("리뷰 저장 오류:", error)
@@ -291,8 +336,6 @@ export default function MovieDetailPage() {
 
     // 로컬 스토리지에도 영화 ID 저장
     localStorage.setItem("selectedMovieId", bookingId.toString())
-    console.log("예매할 영화 ID를 로컬 스토리지에 저장:", bookingId)
-
     // 예매 페이지로 이동
     router.push(`/reservation`)
   }
@@ -310,6 +353,7 @@ export default function MovieDetailPage() {
       })
       if (!response.ok) throw new Error("리뷰 삭제 실패")
       setReviews(reviews.filter((r) => r.id !== reviewId))
+      fetchLikeInfo(reviews.filter((r) => r.id !== reviewId), currentUserId)
       alert("리뷰가 삭제되었습니다.")
     } catch (err) {
       alert("리뷰 삭제 중 오류가 발생했습니다.")
@@ -376,6 +420,14 @@ export default function MovieDetailPage() {
             ? { ...r, rating: editUserRating, text: editReviewText, spoiler: editIsSpoiler }
             : r
         )
+      )
+      fetchLikeInfo(
+        reviews.map((r) =>
+          r.id === editingReviewId
+            ? { ...r, rating: editUserRating, text: editReviewText, spoiler: editIsSpoiler }
+            : r
+        ),
+        currentUserId
       )
       alert("리뷰가 수정되었습니다.")
       handleCancelEdit()
@@ -567,7 +619,7 @@ export default function MovieDetailPage() {
               <span className="ml-2 text-lg text-gray-500">({reviews.length})</span>
             </h2>
 
-            {/* 리뷰 폼 UI 수정 (스포일러 체크박스 추가) - 리뷰 폼 부분 교체 */}
+            {/* 리뷰 폼 UI */}
             <div className="bg-gray-50 rounded-lg p-4 mb-8">
               <h3 className="text-lg font-semibold mb-3">리뷰 작성</h3>
               {editingReviewId ? (
@@ -658,8 +710,7 @@ export default function MovieDetailPage() {
                 </form>
               ) : (
                 <form onSubmit={handleReviewSubmit}>
-                  {/* 리뷰 폼의 별점 선택 UI 부분 수정 (handleReviewSubmit 함수 아래에 있는 리뷰 폼 부분) */}
-                  {/* 기존 별점 선택 UI를 아래 코드로 교체: */}
+                  {/* 리뷰 폼의 별점 선택 UI */}
                   <div className="mb-4">
                     <label className="block text-sm font-medium text-gray-700 mb-1">평점</label>
                     <div className="flex">
@@ -680,7 +731,6 @@ export default function MovieDetailPage() {
                               }`}
                             />
                           </div>
-
                           {/* 별의 오른쪽 절반 (1.0) */}
                           <div
                             className="w-3 h-6 overflow-hidden cursor-pointer"
@@ -703,7 +753,6 @@ export default function MovieDetailPage() {
                       </span>
                     </div>
                   </div>
-
                   <div className="mb-4">
                     <label htmlFor="review" className="block text-sm font-medium text-gray-700 mb-1">
                       리뷰 내용
@@ -722,7 +771,6 @@ export default function MovieDetailPage() {
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-primary"
                     ></textarea>
                   </div>
-
                   <div className="mb-4">
                     <div className="flex items-center">
                       <input
@@ -738,7 +786,6 @@ export default function MovieDetailPage() {
                       </label>
                     </div>
                   </div>
-
                   <div className="flex justify-end">
                     <button
                       type="submit"
@@ -757,7 +804,7 @@ export default function MovieDetailPage() {
               )}
             </div>
 
-            {/* 리뷰 목록 UI 수정 (스포일러 처리 및 로딩 상태 추가) - 리뷰 목록 부분 교체 */}
+            {/* 리뷰 목록 UI */}
             <div className="space-y-4">
               {reviewLoading ? (
                 <div className="flex justify-center items-center py-8">
@@ -806,6 +853,26 @@ export default function MovieDetailPage() {
                             }
                           })}
                         </div>
+                        {/* 좋아요 버튼 */}
+                        <button
+                          className={`flex items-center px-2 py-1 text-xs rounded transition ${
+                            reviewLikedByMe[review.id]
+                              ? "bg-pink-100 text-pink-600"
+                              : "bg-gray-100 text-gray-500 hover:bg-pink-50"
+                          }`}
+                          onClick={() => handleToggleLike(review.id)}
+                          disabled={!isLoggedIn}
+                          title={isLoggedIn ? "좋아요" : "로그인 필요"}
+                          style={{ minWidth: 48 }}
+                        >
+                          <Heart
+                            className={`h-4 w-4 mr-1 ${
+                              reviewLikedByMe[review.id] ? "fill-pink-500 text-pink-500" : "text-gray-400"
+                            }`}
+                            fill={reviewLikedByMe[review.id] ? "#ec4899" : "none"}
+                          />
+                          {reviewLikes[review.id] ?? 0}
+                        </button>
                         {/* 본인 리뷰에만 수정/삭제 버튼 (username 비교) */}
                         {isLoggedIn && review.username === username && (
                           <>
