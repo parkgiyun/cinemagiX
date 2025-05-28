@@ -475,7 +475,7 @@ export default function MovieDetailPage() {
                         alert("현재 페이지 주소가 클립보드에 복사되었습니다.\n친구에게 공유해보세요!")
                       })
                       .catch(() => {
-                        alert("클립보드 복사에 실패했습니다. 브라우저가 지원되는지 확인해주세요.")
+                        alert("클립보드 복사에 실패했습니다.")
                       })
                   }}
                 >
