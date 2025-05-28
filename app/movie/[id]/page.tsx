@@ -57,6 +57,13 @@ export default function MovieDetailPage() {
   const [reviewLikes, setReviewLikes] = useState<{ [reviewId: number]: number }>({});
   const [reviewLikedByMe, setReviewLikedByMe] = useState<{ [reviewId: number]: boolean }>({});
 
+  // 리뷰 불러오기 및 좋아요 정보 업데이트
+  useEffect(() => {
+    if (reviews.length > 0 && currentUserId) {
+      fetchLikeInfo(reviews, currentUserId)
+    }
+  }, [reviews, currentUserId])
+
   // 로그인 상태 확인
   useEffect(() => {
     const checkLoginStatus = () => {
