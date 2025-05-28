@@ -70,6 +70,9 @@ export default function MovieDetailPage() {
     }
   }, [reviews, currentUserId])
 
+  // 리뷰 평균 별점
+  const [siteAverageRating, setSiteAverageRating] = useState<string | null>(null);
+
   // 로그인 상태 확인
   useEffect(() => {
     const checkLoginStatus = () => {
@@ -176,6 +179,18 @@ export default function MovieDetailPage() {
         // 영화 정보 로드 후 로컬 ID로 리뷰 불러오기
         if (allData.movie && allData.movie.id) {
           fetchReviews(allData.movie.id)
+          // 사이트 평균 별점 계산
+          const ratingRes = await fetch(`https://hs-cinemagix.duckdns.org/api/v1/review/rating?movieId=${allData.movie.id}`);
+          if (ratingRes.ok) {
+            const ratingData = await ratingRes.json();
+            setSiteAverageRating(
+              typeof ratingData.averageRating === "number"
+                ? ratingData.averageRating.toFixed(1)
+                : null
+            );
+          } else {
+            setSiteAverageRating(null);
+          }
         } else {
           console.error("영화의 로컬 ID를 찾을 수 없습니다.")
           setReviewError("영화 ID를 찾을 수 없어 리뷰를 불러올 수 없습니다.")
@@ -514,7 +529,8 @@ export default function MovieDetailPage() {
             <div className={styles.info}>
               <h1 className={styles.title}>{movie.title}</h1>
               <p>
-                {movie.release_date?.substring(0, 4) || "N/A"} · ⭐{movie.vote_average?.toFixed(1) || "N/A"} ·{" "}
+                {movie.release_date?.substring(0, 4) || "N/A"} · ⭐
+                {siteAverageRating !== null ? siteAverageRating : "평점 없음"} ·{" "}
                 {movie.runtime || "N/A"} minutes
               </p>
               <p className={styles.overview}>&nbsp;{movie.overview || "줄거리 정보가 없습니다."}</p>
