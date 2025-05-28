@@ -150,7 +150,7 @@ export default function MovieDetailPage() {
         text: review.review,
         date: review.review_date,
         spoiler: review.spoiler,
-        userId: review.userId ?? review.user_id, 
+        userId: review.userId,
       }))
 
       setReviews(formattedReviews)
@@ -246,17 +246,14 @@ export default function MovieDetailPage() {
   const handleReviewSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    console.log("!!!currentUserId:", currentUserId);
-    console.log("!!!reviews:", reviews);
-
     if (!isLoggedIn) {
       alert("리뷰를 작성하려면 로그인이 필요합니다.")
       router.push("/login")
       return
     }
 
-    // 본인 리뷰가 이미 있는지 확인
-    if (reviews.some(r => Number(r.userId) === Number(currentUserId))) {
+    // 본인 리뷰가 이미 있는지 확인 (username으로 비교 -> 회원가입시 username 중복 방지 必?)
+    if (reviews.some(r => r.username === username)) {
       alert("이미 작성한 리뷰가 있습니다. 리뷰는 한 번만 작성할 수 있습니다.");
       return;
     }
