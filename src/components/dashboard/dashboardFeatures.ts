@@ -1,5 +1,4 @@
 import axios from "axios"
-import { apiService } from "../common/apiService"
 
 export interface UserData {
   username: string
@@ -249,7 +248,8 @@ export const sendVerificationCode = async (email: string): Promise<{ success: bo
   }
 
   try {
-    const response = await apiService("/v1/user/verifyEmail", { email })
+    const response = await axios.post("https://hs-cinemagix.duckdns.org/api/v1/user/verifyEmail", { email })
+
     console.log("인증 코드 전송 응답:", response.data)
 
     // 백엔드 응답이 문자열 "SUCCESS"인 경우 처리
