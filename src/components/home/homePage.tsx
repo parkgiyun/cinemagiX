@@ -23,12 +23,9 @@ function SocialAutoLogin() {
         })
         .then(user => {
           localStorage.setItem("user", JSON.stringify(user));
-          router.replace("/");
-        })
-        .finally(() => {
           localStorage.setItem("socialLoginRefreshed", "true");
-          window.location.reload();
-        });
+          window.location.replace("/"); // 새로고침
+        })
     } else if (!isSocial) {
       // 소셜 로그인 쿼리가 없으면 플래그 제거(다음 소셜 로그인 대비)
       localStorage.removeItem("socialLoginRefreshed");
