@@ -72,9 +72,6 @@ export const logout = (): void => {
   localStorage.removeItem("user")
   sessionStorage.removeItem("token")
   sessionStorage.removeItem("user")
-
-  // 쿠키 제거
-  document.cookie = "auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT"
 }
 
 /**
@@ -90,12 +87,7 @@ export const updateUserProfile = async (
   currentPassword: string,
 ): Promise<{ success: boolean; message: string }> => {
   try {
-    const token = localStorage.getItem("token") || sessionStorage.getItem("token")
     const userData = getUserProfile()
-
-    if (!token) {
-      throw new Error("인증 토큰이 없습니다.")
-    }
 
     if (!userData || !userData.email) {
       throw new Error("사용자 정보를 찾을 수 없습니다.")
@@ -138,9 +130,7 @@ export const updateUserProfile = async (
     })
 
     const response = await axios.post("/api/user/update", requestData, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+        withCredentials: true,
     })
 
     console.log("API 응답:", response.data)
@@ -177,12 +167,7 @@ export const updateUserProfile = async (
  */
 export const deleteUserAccount = async (password: string): Promise<{ success: boolean; message: string }> => {
   try {
-    const token = localStorage.getItem("token") || sessionStorage.getItem("token")
     const userData = getUserProfile()
-
-    if (!token) {
-      throw new Error("인증 토큰이 없습니다.")
-    }
 
     if (!userData || !userData.email) {
       throw new Error("사용자 정보를 찾을 수 없습니다.")
@@ -204,9 +189,7 @@ export const deleteUserAccount = async (password: string): Promise<{ success: bo
     }
 
     const response = await axios.post("/api/user/deleteAccount", requestData, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+        withCredentials: true,
     })
 
     console.log("API 응답:", response.data)
@@ -326,10 +309,6 @@ export const verifyEmailCode = async (email: string, authnum: string): Promise<{
 // 사용자 예매 내역(주문+티켓) 조회 함수 - orderId 포함된 orders API 사용
 export const getUserTickets = async (userId: number): Promise<any> => {
   try {
-    const token = localStorage.getItem("token") || sessionStorage.getItem("token")
-    if (!token) {
-      throw new Error("인증 토큰이 없습니다.")
-    }
     // 주문(orders) API로 변경
     const response = await axios.get(
       `https://hs-cinemagix.duckdns.org/api/v1/orders/user/${userId}`,
@@ -337,7 +316,6 @@ export const getUserTickets = async (userId: number): Promise<any> => {
         headers: {
           "Content-Type": "application/json",
           Accept: "*/*",
-          Authorization: `Bearer ${token}`,
         },
       },
     )
