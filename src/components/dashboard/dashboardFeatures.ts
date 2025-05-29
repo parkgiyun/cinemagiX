@@ -72,66 +72,66 @@ export const logout = (): void => {
   sessionStorage.removeItem("user")
 }
 
-/**
- * 사용자 정보 업데이트 함수
- * @param field 업데이트할 필드 (username, email, password)
- * @param value 새 값
- * @param currentPassword 현재 비밀번호 (인증용)
- * @returns 업데이트 결과
- */
 export const updateUserProfile = async (
   field: string,
   value: string,
   currentPassword: string,
 ): Promise<{ success: boolean; message: string }> => {
   try {
-    const userData = getUserProfile()
+    const userData = getUserProfile();
 
     if (!userData || !userData.email) {
-      throw new Error("사용자 정보를 찾을 수 없습니다.")
+      throw new Error("사용자 정보를 찾을 수 없습니다.");
     }
 
     if (!currentPassword) {
-      throw new Error("현재 비밀번호가 필요합니다.")
+      throw new Error("현재 비밀번호가 필요합니다.");
     }
 
     if (currentPassword === value) {
-      throw new Error("현재 비밀번호와 새 비밀번호가 동일합니다.")
+      throw new Error("현재 비밀번호와 새 비밀번호가 동일합니다.");
     }
 
     // 비밀번호 변경 시 새 비밀번호 확인
     if (field === "password" && !value) {
-      throw new Error("새 비밀번호가 필요합니다.")
+      throw new Error("새 비밀번호가 필요합니다.");
     }
 
-    console.log("업데이트 요청 준비:", {
-      field,
-      valueLength: value ? value.length : 0,
-      email: userData.email,
-      hasPassword: !!currentPassword,
-      hasNewPassword: field === "password" ? !!value : "N/A",
-    })
+    // 필드에 따라 다른 API 엔드포인트 사용
+    let apiEndpoint = "";
+    if (field === "username") {
+      apiEndpoint = "https://hs-cinemagix.duckdns.org/api/v1/detail/change/username";
+    } else if (field === "password") {
+      apiEndpoint = "https://hs-cinemagix.duckdns.org/api/v1/detail/change/password";
+    } else if (field === "email") {
+      apiEndpoint = "https://hs-cinemagix.duckdns.org/api/v1/detail/change/email";
+    } else {
+      throw new Error("지원하지 않는 필드입니다.");
+    }
 
-    // API 요청 데이터 구성 - 새로운 형식으로 변경
+    // API 요청 데이터 구성
     const requestData = {
       user_id: userData.user_id,
-      field,
-      value,
-      currentPassword,
-    }
+      password: currentPassword,
+      after: value,
+    };
 
     console.log("API 요청 데이터:", {
-      field: requestData.field,
-      valueLength: requestData.value ? requestData.value.length : 0,
-      hasPassword: !!requestData.currentPassword,
+      endpoint: apiEndpoint,
       user_id: requestData.user_id,
-    })
+      hasPassword: !!requestData.password,
+      afterLength: requestData.after ? requestData.after.length : 0,
+    });
 
-    const response = await axios.post("/api/user/update", requestData, {
-      withCredentials: true, // 쿠키를 포함하기 위해 필요
-    })
+    const response = await axios.post(apiEndpoint, requestData, {
+      withCredentials: true,
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "*/*",
+      },
+    });
 
-    console.log("API 응답:", response.data)
+    console.log("API 응답:", response.data);
 
     if (response.data.code === "SUCCESS") {
       return {
@@ -140,23 +140,23 @@ export const updateUserProfile = async (
           field === "password"
             ? "비밀번호가 변경되었습니다."
             : `${field === "username" ? "이름" : "이메일"}이 변경되었습니다.`,
-      }
+      };
     }
 
     return {
       success: false,
       message: response.data.message || "업데이트에 실패했습니다.",
-    }
+    };
   } catch (error: any) {
-    console.error("사용자 정보 업데이트 오류:", error)
-    console.error("상세 오류:", error.response?.data || "상세 정보 없음")
+    console.error("사용자 정보 업데이트 오류:", error);
+    console.error("상세 오류:", error.response?.data || "상세 정보 없음");
 
     return {
       success: false,
       message: error.response?.data?.message || error.message || "업데이트 중 오류가 발생했습니다.",
-    }
+    };
   }
-}
+};
 
 /**
  * 회원 탈퇴 함수
