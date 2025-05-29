@@ -55,7 +55,7 @@ export default function RegisterPage() {
 
     try {
       // 대시보드와 동일하게 axios로 직접 호출
-      const response = await axios.post("https://hs-cinemagix.duckdns.org/api/v1/user/send", { email })
+      const response = await axios.post("https://hs-cinemagix.duckdns.org/api/v1/user/verifyEmail", { email })
       if (response.data === "SUCCESS") {
         setVerificationSent(true)
       } else {
@@ -68,8 +68,8 @@ export default function RegisterPage() {
     }
   }
 
-  const handleVerifyCode = async (email: string, code: string) => {
-    if (!code) {
+  const handleVerifyCode = async (email: string, authnum: string) => {
+    if (!authnum) {
       setError("인증 코드를 입력해주세요.")
       return
     }
@@ -79,7 +79,7 @@ export default function RegisterPage() {
 
     try {
       // 대시보드와 동일하게 axios로 직접 호출
-      const response = await axios.post("https://hs-cinemagix.duckdns.org/api/v1/user/check", { email, code })
+      const response = await axios.post("https://hs-cinemagix.duckdns.org/api/v1/user/check", { email, authnum })
       if (response.data === "SUCCESS") {
         setVerificationSuccess(true)
       } else {
