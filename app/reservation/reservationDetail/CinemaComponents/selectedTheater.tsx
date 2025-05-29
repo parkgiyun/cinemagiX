@@ -263,7 +263,7 @@ const SelectedTheater: React.FC<SelectedTheaterProps> = ({
           {/* 내 선호 영화관 탭 */}
           {myTheaterList.length > 0 && (
             <div>
-              <h2 className="text-lg font-semibold mb-2">내 선호 영화관</h2>
+              <h2 className="text-xl font-semibold mb-3">내 선호 영화관</h2>
               <div className="flex flex-wrap gap-2">
                 {myTheaterList.map((fav) => {
                   const theater = theaterList.find(t => t.id === fav.spot_id);
