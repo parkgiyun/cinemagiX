@@ -2,7 +2,6 @@ import { apiService } from "../common/apiService"
 import React from "react"
 
 
-const [errorMsg, setErrorMsg] = useState('');
 /**
  * 로그인 요청을 처리하는 함수
  * @param email 사용자 이메일
@@ -17,8 +16,7 @@ export const loginUser = async (email: string, password: string) => {
     })
     return data
   } catch (error) {
-    setErrorMsg(error.response?.data?.message || '로그인에 실패했습니다. 비밀번호가 올바른지 확인해주세요.');
-    throw error
+        throw error
   }
 }
 
