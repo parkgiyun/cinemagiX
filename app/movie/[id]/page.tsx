@@ -105,7 +105,11 @@ export default function MovieDetailPage() {
       reviews.map(async (review) => {
         // 좋아요 개수
         try {
-          const res = await fetch(`https://hs-cinemagix.duckdns.org/api/v1/review/getLikeCount?reviewId=${review.id}`);
+          const res = await fetch(`https://hs-cinemagix.duckdns.org/api/v1/review/getLikeCount?reviewId=${review.id}`,
+            {
+              credentials: "include", // JWT 인증을 위한 쿠키 전송
+            }
+          );
           if (res.ok) {
             const data = await res.json();
             likes[review.id] = data.likeCount;
@@ -114,7 +118,11 @@ export default function MovieDetailPage() {
         // 내가 좋아요 눌렀는지
         if (userId) {
           try {
-            const res = await fetch(`https://hs-cinemagix.duckdns.org/api/v1/review/isLiked?userId=${userId}&reviewId=${review.id}`);
+            const res = await fetch(`https://hs-cinemagix.duckdns.org/api/v1/review/isLiked?userId=${userId}&reviewId=${review.id}`,
+              {
+              credentials: "include", // JWT 인증을 위한 쿠키 전송
+            }
+            );
             if (res.ok) {
               liked[review.id] = await res.json();
             }
@@ -180,7 +188,11 @@ export default function MovieDetailPage() {
         if (allData.movie && allData.movie.id) {
           fetchReviews(allData.movie.id)
           // 사이트 평균 별점 계산
-          const ratingRes = await fetch(`https://hs-cinemagix.duckdns.org/api/v1/review/rating?movieId=${allData.movie.id}`);
+          const ratingRes = await fetch(`https://hs-cinemagix.duckdns.org/api/v1/review/rating?movieId=${allData.movie.id}`,
+            {
+              credentials: "include", // JWT 인증을 위한 쿠키 전송
+            }
+          );
           if (ratingRes.ok) {
             const ratingData = await ratingRes.json();
             setSiteAverageRating(
@@ -233,7 +245,7 @@ export default function MovieDetailPage() {
     try {
       await fetch(`https://hs-cinemagix.duckdns.org/api/v1/review/likeToggle?userId=${currentUserId}&reviewId=${reviewId}`, {
         method: "POST",
-        credentials: "include",
+        credentials: "include", // JWT 인증을 위한 쿠키 전송
       });
       // 상태 갱신
       fetchLikeInfo(reviews, currentUserId);
@@ -311,6 +323,7 @@ export default function MovieDetailPage() {
           Authorization: token ? `Bearer ${token}` : "",
         },
         body: JSON.stringify(reviewData),
+        credentials: "include", // JWT 인증을 위한 쿠키 전송
       })
 
       let responseData: any
@@ -387,6 +400,7 @@ export default function MovieDetailPage() {
           headers: {
             Authorization: token ? `Bearer ${token}` : "",
           },
+          credentials: "include", // JWT 인증을 위한 쿠키 전송
         }
       )
       if (!response.ok) throw new Error("리뷰 삭제 실패")
@@ -444,6 +458,7 @@ export default function MovieDetailPage() {
             Authorization: token ? `Bearer ${token}` : "",
           },
           body: JSON.stringify(patchData),
+          credentials: "include", // JWT 인증을 위한 쿠키 전송
         }
       )
       if (!response.ok) throw new Error("리뷰 수정 실패")
