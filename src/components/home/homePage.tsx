@@ -17,6 +17,14 @@ function SocialAutoLogin() {
         method: "POST",
         credentials: "include",
       })
+        .then(res => {
+          if (!res.ok) throw new Error("Auth failed");
+          return res.json();
+        })
+        .then(user => {
+          localStorage.setItem("user", JSON.stringify(user));
+          router.replace("/");
+        })
         .finally(() => {
           localStorage.setItem("socialLoginRefreshed", "true");
           window.location.reload();
