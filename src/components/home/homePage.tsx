@@ -24,6 +24,7 @@ function SocialAutoLogin() {
         .then(user => {
           localStorage.setItem("user", JSON.stringify(user));
           localStorage.setItem("socialLoginRefreshed", "true");
+          alert("⚠️ 소셜 로그인은 초기 비밀번호가 1234로 설정되어 있습니다. 마이페이지 > 보안 탭에서 변경하는 것을 권장합니다.")
           window.location.replace("/"); // 새로고침
         })
     } else if (!isSocial) {
