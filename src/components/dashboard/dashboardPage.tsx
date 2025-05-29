@@ -27,16 +27,12 @@ export default function DashboardPage() {
   useEffect(() => {
     const checkAuth = () => {
       try {
-        // 여러 소스에서 토큰 확인
-        const localToken = localStorage.getItem("token")
-        const sessionToken = sessionStorage.getItem("token")
+        // 쿠키에서 토큰 가져오기
         const cookieToken = getCookie("auth_token")
 
-        const token = localToken || sessionToken || cookieToken
+        const token = cookieToken
 
         console.log("대시보드 - 토큰 확인:", {
-          localToken: !!localToken,
-          sessionToken: !!sessionToken,
           cookieToken: !!cookieToken,
         })
 
@@ -44,13 +40,6 @@ export default function DashboardPage() {
           console.error("토큰이 없어 로그인 페이지로 이동합니다.")
           router.push("/login")
           return
-        }
-
-        // 토큰이 있으면 다시 저장 (다른 스토리지에도 복제)
-        if (token) {
-          if (!localToken) localStorage.setItem("token", token)
-          if (!sessionToken) sessionStorage.setItem("token", token)
-          if (!cookieToken) document.cookie = `auth_token=${token}; path=/; max-age=86400`
         }
 
         // 사용자 정보 확인
@@ -73,28 +62,13 @@ export default function DashboardPage() {
           }
           setLoading(false)
         } else {
-          // 사용자 정보가 없지만 토큰이 있는 경우, 기본 사용자 정보 생성
-          const defaultUser = {
-            email: "user@example.com",
-            username: "사용자",
-          }
-
-          console.log("사용자 정보가 없어 기본 정보를 사용합니다:", defaultUser)
-          localStorage.setItem("user", JSON.stringify(defaultUser))
-          setUser(defaultUser)
-          setLoading(false)
+          // 사용자 정보가 없으면 로그인 페이지로 이동
+          router.push("/login")
         }
       } catch (error) {
         console.error("인증 확인 중 오류:", error)
-        // 오류 발생 시에도 기본 사용자 정보로 진행
-        const defaultUser = {
-          email: "user@example.com",
-          username: "사용자",
-        }
-
-        localStorage.setItem("user", JSON.stringify(defaultUser))
-        setUser(defaultUser)
-        setLoading(false)
+        // 오류 발생 시 로그인 페이지로 이동
+        router.push("/login")
       }
     }
 
