@@ -12,7 +12,7 @@ function SocialAutoLogin() {
 useEffect(() => {
   const isSocial = params.get("social") === "1";
   if (isSocial) {
-    // 쿠키 적용 대기 (200ms → 500ms로 증가)
+    // 쿠키 적용 대기
     setTimeout(() => {
       fetch("https://hs-cinemagix.duckdns.org/api/v1/user/me", {
         method: "POST",
@@ -30,7 +30,7 @@ useEffect(() => {
           // 인증 실패 시 새로고침 시도 (쿠키 적용 보장)
           window.location.reload();
         });
-    }, 500);
+    }, 3000);
   }
 }, [params, router]);
 
