@@ -137,7 +137,7 @@ export const updateUserProfile = async (
       user_id: requestData.user_id,
     })
 
-    const response = await axios.post("/api/user/update", requestData, {
+    const response = await axios.post("/api/user/detail/change", requestData, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
