@@ -3,8 +3,9 @@
 import { useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { HomeContent } from "./homeUI";
+import { Suspense } from "react";
 
-export default function HomePage() {
+function SocialAutoLogin() {
   const router = useRouter();
   const params = useSearchParams();
   const isSocial = params.get("social") === "1";
@@ -18,8 +19,7 @@ export default function HomePage() {
         .then(res => res.json())
         .then(user => {
           localStorage.setItem("user", JSON.stringify(user));
-          // 필요시 로그인 상태 갱신
-          router.replace("/"); // 쿼리스트링 제거
+          router.replace("/");
         })
         .catch(() => {
           router.push("/login");
@@ -27,8 +27,15 @@ export default function HomePage() {
     }
   }, [isSocial, router]);
 
+  return null;
+}
+
+export default function HomePage() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-gray-50">
+      <Suspense fallback={null}>
+        <SocialAutoLogin />
+      </Suspense>
       <HomeContent />
     </div>
   );
