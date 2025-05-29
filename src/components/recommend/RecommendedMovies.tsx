@@ -249,7 +249,7 @@ export const RecommendedMovies = () => {
             setSelectingGenre(false) // 초기화
           }}
         >
-          새로고침
+          영화 추천받기
         </button>
 
 
