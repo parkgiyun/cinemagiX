@@ -17,6 +17,7 @@ export async function GET(request: Request) {
       headers: {
         "Content-Type": "application/json",
         Accept: "*/*",
+        withCredentials: "true", // 쿠키를 포함하기 위해 필요
       },
     })
 
