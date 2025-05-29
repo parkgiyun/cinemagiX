@@ -295,9 +295,7 @@ const getPreferredTheaterInfo = async () => {
             <div>
               <h2 className="text-xl font-semibold mb-3">극장 선택</h2>
               <div className="space-y-2">
-                {filteredTheaters.map((theater: 
-                  
-                ) => (
+                {filteredTheaters.map((theater: Theater) => (
                   <div
                     key={theater.id}
                     className={`p-3 rounded-lg border cursor-pointer transition-all ${
