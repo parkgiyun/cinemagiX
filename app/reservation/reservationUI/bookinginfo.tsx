@@ -7,7 +7,7 @@ import { useState, useEffect, memo, useRef } from "react"
 import { useRegion, useTheather, useMovieRunningDetail, useReduxBoxoffice } from "@/app/redux/reduxService"
 import { cancelOrder, requestPayment, checkPaymentStatus } from "@/src/components/common/apiService"
 import { Loader2, CheckCircle, AlertCircle } from "lucide-react"
-import axios from "axios"
+import axios from "@/lib/axios-config";
 import { TICKET_PRICE } from "@/src/components/common/theaterData"
 import { useRouter } from "next/navigation"
 

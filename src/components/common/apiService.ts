@@ -1,6 +1,6 @@
 "server client"
 
-import axios from "axios"
+import axios from "@/lib/axios-config";
 
 const API_BASE_URL = "https://hs-cinemagix.duckdns.org/api"
 // const API_BASE_URL = "http://localhost:8080/api"
