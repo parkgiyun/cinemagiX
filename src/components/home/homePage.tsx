@@ -9,33 +9,30 @@ function SocialAutoLogin() {
   const router = useRouter();
   const params = useSearchParams();
 
-  useEffect(() => {
-    // 클라이언트에서만 실행
-    if (typeof window === "undefined") return;
-
-    const isSocial = params.get("social") === "1";
-    if (isSocial) {
-      setTimeout(() => {
-        fetch("https://hs-cinemagix.duckdns.org/api/v1/user/me", {
-          method: "POST",
-          credentials: "include",
+useEffect(() => {
+  const isSocial = params.get("social") === "1";
+  if (isSocial) {
+    // 쿠키 적용 대기 (200ms → 500ms로 증가)
+    setTimeout(() => {
+      fetch("https://hs-cinemagix.duckdns.org/api/v1/user/me", {
+        method: "POST",
+        credentials: "include",
+      })
+        .then(res => {
+          if (!res.ok) throw new Error("Auth failed");
+          return res.json();
         })
-          .then(res => {
-            if (!res.ok) throw new Error("Auth failed");
-            return res.json();
-          })
-          .then(user => {
-            localStorage.setItem("user", JSON.stringify(user));
-            // 쿼리스트링 제거 후 홈으로 이동
-            router.replace("/");
-          })
-          .catch(() => {
-            window.location.reload();
-          });
-      }, 500);
-    }
-  // params.toString()을 deps에 추가
-  }, [router, params.toString()]);
+        .then(user => {
+          localStorage.setItem("user", JSON.stringify(user));
+          router.replace("/");
+        })
+        .catch(() => {
+          // 인증 실패 시 새로고침 시도 (쿠키 적용 보장)
+          window.location.reload();
+        });
+    }, 500);
+  }
+}, [params, router]);
 
   return null;
 }
