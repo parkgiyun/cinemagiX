@@ -12,21 +12,24 @@ function SocialAutoLogin() {
   useEffect(() => {
     const isSocial = params.get("social") === "1";
     if (isSocial) {
-      fetch("https://hs-cinemagix.duckdns.org/api/v1/user/me", {
-        method: "POST",
-        credentials: "include",
-      })
-        .then(res => {
-          if (!res.ok) throw new Error("Auth failed");
-          return res.json();
+      // 쿠키 적용 대기 (200ms)
+      setTimeout(() => {
+        fetch("https://hs-cinemagix.duckdns.org/api/v1/user/me", {
+          method: "POST",
+          credentials: "include",
         })
-        .then(user => {
-          localStorage.setItem("user", JSON.stringify(user));
-          router.replace("/");
-        })
-        .catch(() => {
-          router.push("/login");
-        });
+          .then(res => {
+            if (!res.ok) throw new Error("Auth failed");
+            return res.json();
+          })
+          .then(user => {
+            localStorage.setItem("user", JSON.stringify(user));
+            router.replace("/");
+          })
+          .catch(() => {
+            router.push("/login");
+          });
+      }, 200);
     }
   }, [params, router]);
 
