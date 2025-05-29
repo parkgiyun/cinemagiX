@@ -247,7 +247,7 @@ export const HomeContent = () => {
 
             {/* 로딩 표시 */}
             {loading ? (
-              <div className="flex justify-center items-center py-20">
+              <div className="movie-grid-loading flex justify-center items-center py-20">
                 <Loader2 className="h-10 w-10 animate-spin text-primary" />
               </div>
             ) : error ? (

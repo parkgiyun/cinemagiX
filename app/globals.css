@@ -79,7 +79,14 @@
   border-bottom: 1px solid #e0e0e0;
   padding: 1rem 0;
   margin-bottom: 2rem;
-  width: 100%;
+  width: 100vw;
+  position: relative;
+  left: 50%;
+  right: 50%;
+  transform: translateX(-50%);
+  box-sizing: border-box;
+  background: #fff;
+  z-index: 100;
 }
 
 .site-container {
@@ -200,6 +207,11 @@
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   gap: 1.5rem;
+}
+
+.movie-grid,
+.movie-grid-loading {
+  min-width: 400px;
 }
 
 .movie-card {
