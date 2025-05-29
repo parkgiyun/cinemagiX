@@ -5,6 +5,7 @@ import { useEffect, useState, useRef } from "react"
 import Link from "next/link"
 import { Loader2, ArrowLeft, ArrowRight } from "lucide-react"
 import { fetchAIRecommendedMovies, refreshAIRecommendedMovies } from "../common/apiService"
+import { useRouter } from "next/navigation"
 
 interface AIRecommendedMovie {
   movieId: number
@@ -31,6 +32,7 @@ export const RecommendedMovies = () => {
   const totalPages = Math.ceil(recommendedMovies.length / MOVIES_PER_PAGE)
 
   const containerRef = useRef<HTMLDivElement>(null)
+  const router = useRouter();
 
   const getUserIdFromLocalStorage = (): number | null => {
     const userStr = localStorage.getItem("user") || sessionStorage.getItem("user")
@@ -127,7 +129,8 @@ export const RecommendedMovies = () => {
   const handleRefresh = async (type: string) => {
     const userId = getUserIdFromLocalStorage()
     if (!userId) {
-      alert("로그인이 필요합니다.")
+      alert("로그인 후 이용 가능합니다.")
+      router.push("/login")
       return
     }
     setShowModal(false)
