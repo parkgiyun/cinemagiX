@@ -14,14 +14,6 @@ export async function POST(request: Request) {
       hasNewPassword: field === "password" ? !!value : "N/A",
     })
 
-    // 요청에서 토큰 추출
-    const authHeader = request.headers.get("Authorization")
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return NextResponse.json({ success: false, message: "인증 토큰이 필요합니다." }, { status: 401 })
-    }
-
-    const token = authHeader.split(" ")[1]
-
     if (!currentPassword) {
       return NextResponse.json({ success: false, message: "비밀번호가 필요합니다." }, { status: 400 })
     }
@@ -63,7 +55,6 @@ export async function POST(request: Request) {
       headers: {
         "Content-Type": "application/json",
         Accept: "*/*",
-        Authorization: `Bearer ${token}`,
       },
     })
 
