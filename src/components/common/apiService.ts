@@ -224,7 +224,7 @@ export const createOrder = async (orderData: { userId: number; screeningId: numb
     console.error("주문 생성 오류:", err)
 
     if (axios.isAxiosError(err)) {
-      throw new Error(err.response?.data?.message || "상영 시작 30분 전 이후에는 예매할 수 없습니다.")
+      throw new Error(err.response?.data?.message)
     } else if (err instanceof Error) {
       throw new Error(err.message)
     } else {
