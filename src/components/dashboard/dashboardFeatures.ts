@@ -72,6 +72,7 @@ export const logout = (): void => {
   sessionStorage.removeItem("user")
 }
 
+// 사용자 프로필 업데이트 함수
 export const updateUserProfile = async (
   field: string,
   value: string,
@@ -158,65 +159,70 @@ export const updateUserProfile = async (
   }
 };
 
-/**
- * 회원 탈퇴 함수
- * @param password 비밀번호 (인증용)
- * @returns 탈퇴 결과
- */
+// 회원 탈퇴 함수
 export const deleteUserAccount = async (password: string): Promise<{ success: boolean; message: string }> => {
   try {
-    const userData = getUserProfile()
+    const userData = getUserProfile();
 
     if (!userData || !userData.email) {
-      throw new Error("사용자 정보를 찾을 수 없습니다.")
+      throw new Error("사용자 정보를 찾을 수 없습니다.");
     }
 
     if (!password) {
-      throw new Error("비밀번호가 필요합니다.")
+      throw new Error("비밀번호가 필요합니다.");
     }
 
     console.log("회원 탈퇴 요청 준비:", {
       email: userData.email,
       hasPassword: !!password,
-    })
+    });
 
     // API 요청 데이터 구성
     const requestData = {
       email: userData.email,
       password: password,
-    }
+    };
 
-    const response = await axios.post("/api/user/deleteAccount", requestData, {
-      withCredentials: true, // 쿠키를 포함하기 위해 필요
-    })
+    // Spring 서버로 직접 요청
+    const response = await axios.post(
+      "https://hs-cinemagix.duckdns.org/api/v1/user/deleteAccount",
+      requestData,
+      {
+        withCredentials: true, // 쿠키(JWT) 포함
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "*/*",
+        },
+      }
+    );
 
-    console.log("API 응답:", response.data)
+    console.log("API 응답:", response.data);
 
     if (response.data.code === "SUCCESS") {
       // 탈퇴 성공 시 로그아웃 처리
-      logout()
+      logout();
 
       return {
         success: true,
         message: "회원 탈퇴가 완료되었습니다.",
-      }
+      };
     }
 
     return {
       success: false,
       message: response.data.message || "회원 탈퇴에 실패했습니다.",
-    }
+    };
   } catch (error: any) {
-    console.error("회원 탈퇴 오류:", error)
-    console.error("상세 오류:", error.response?.data || "상세 정보 없음")
+    console.error("회원 탈퇴 오류:", error);
+    console.error("상세 오류:", error.response?.data || "상세 정보 없음");
 
     return {
       success: false,
       message:
         error.response?.data?.message || error.message || "회원 탈퇴 중 오류가 발생했습니다. 다시 시도해 주세요.",
-    }
+    };
   }
-}
+};
 
 // 이메일 인증 코드 전송 함수
 export const sendVerificationCode = async (email: string): Promise<{ success: boolean; message: string }> => {
