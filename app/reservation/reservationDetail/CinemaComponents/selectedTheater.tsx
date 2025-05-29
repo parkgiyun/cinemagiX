@@ -40,6 +40,7 @@ const SelectedTheater: React.FC<SelectedTheaterProps> = ({
   const { theaterList, findTheaterId } = useTheather()
   const { movieList, findMovie } = useReduxBoxoffice()
   const { movieRunningDetail, updateMovieRunningDetail } = useMovieRunningDetail()
+  const [myTheaterList, setMyTheaterList] = useState<{ id: number; spot_id: number }[]>([]);
 
   const filteredTheaters = useMemo(
     () => theaterList.filter((theater) => theater.region_id === selectedRegion),
@@ -77,31 +78,34 @@ const SelectedTheater: React.FC<SelectedTheaterProps> = ({
 
   const [theaterStep, setTheatherStep] = useState(0)
 
-  // 선호 영화관 정보를 API에서 불러오는 함수
-const getPreferredTheaterInfo = async () => {
-  // userId를 localStorage/sessionStorage에서 가져오거나, 로그인 상태에서 받아옴
-  const userStr = localStorage.getItem("user") || sessionStorage.getItem("user");
-  if (!userStr) return null;
-  let userId = null;
-  try {
-    const userData = JSON.parse(userStr);
-    userId = userData.user_id || userData.id;
-  } catch {
-    return null;
-  }
-  if (!userId) return null;
+  useEffect(() => {
+    // 선호 영화관 목록 불러오기
+    const fetchMyTheaterList = async () => {
+      const userStr = localStorage.getItem("user") || sessionStorage.getItem("user");
+      if (!userStr) return;
+      let userId = null;
+      try {
+        const userData = JSON.parse(userStr);
+        userId = userData.user_id || userData.id;
+      } catch {
+        return;
+      }
+      if (!userId) return;
 
-  // API 호출
-  const res = await getMyTheater(userId);
-  if (!res || !res.myTheatherList || res.myTheatherList.length === 0) return null;
-  const spotId = res.myTheatherList[0].spot_id;
-  // spotId로 region/theater 찾기
-  const theater = theaterList.find(t => t.id === spotId);
-  if (!theater) return null;
-  const region = regionList.find(r => r.id === theater.region_id);
-  if (!region) return null;
-  return { regionId: region.id, theaterId: theater.id };
-};
+      try {
+        const res = await fetch(`https://hs-cinemagix.duckdns.org/api/v1/detail/retrieve/myTheater?user_id=${userId}`, {
+          credentials: "include",
+        });
+        const data = await res.json();
+        if (data && data.myTheaterList) {
+          setMyTheaterList(data.myTheaterList);
+        }
+      } catch (e) {
+        // 에러 무시
+      }
+    };
+    fetchMyTheaterList();
+  }, [regionList, theaterList]);
 
   const handleRegionSelect = (regionId: number) => {
     setSelectedRegion(regionId)
@@ -252,240 +256,246 @@ const getPreferredTheaterInfo = async () => {
     setFinishTimes(addTime)
   }, [movieRunningDetail, theaterStep])
 
-  useEffect(() => {
-  // 선호 영화관 설정 (API에서 불러오기)
-  const fetchPreferredTheater = async () => {
-    const preferredTheater = await getPreferredTheaterInfo();
-    if (preferredTheater) {
-      setSelectedRegion(preferredTheater.regionId);
-      setTimeout(() => {
-        setSelectedTheater(preferredTheater.theaterId);
-        setTheatherStep(2);
-        scrollAni(movieListRef);
-      }, 100);
-    }
-  };
-  fetchPreferredTheater();
-}, [regionList, theaterList]);
-
   return (
     <div className="container mx-auto py-6 px-4 md:px-6">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="space-y-6">
-          <div>
-            <h2 className="text-xl font-semibold mb-3">지역 선택</h2>
-            <div className="flex flex-wrap gap-2">
-              {regionList.map((region: Region) => (
-                <button
-                  key={region.id}
-                  className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                    selectedRegion === region.id
-                      ? "bg-blue-500 text-white"
-                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+          {/* 내 선호 영화관 탭 */}
+          {myTheaterList.length > 0 && (
+            <div className="mb-4">
+              <h2 className="text-lg font-semibold mb-2">내 선호 영화관</h2>
+              <div className="flex flex-wrap gap-2">
+                {myTheaterList.map((fav) => {
+                  const theater = theaterList.find(t => t.id === fav.spot_id);
+                  const region = regionList.find(r => r.id === theater?.region_id);
+                  if (!theater || !region) return null;
+                  return (
+                    <button
+                      key={fav.id}
+                      className={`px-4 py-2 rounded-md text-sm font-medium transition-colors bg-blue-100 text-blue-800 hover:bg-blue-200`}
+                      onClick={() => {
+                        setSelectedRegion(region.id);
+                        setSelectedTheater(theater.id);
+                        setTheatherStep(2);
+                        scrollAni(movieListRef);
+                      }}
+                    >
+                      {region.name} - {theater.name}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+          {/* 지역 및 극장 선택 */}
+          <h2 className="text-xl font-semibold mb-3">지역 선택</h2>
+          <div className="flex flex-wrap gap-2">
+            {regionList.map((region: Region) => (
+              <button
+                key={region.id}
+                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${selectedRegion === region.id
+                    ? "bg-blue-500 text-white"
+                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                   }`}
-                  onClick={() => handleRegionSelect(region.id)}
+                onClick={() => handleRegionSelect(region.id)}
+              >
+                {region.name}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {theaterStep > 0 && (
+          <div>
+            <h2 className="text-xl font-semibold mb-3">극장 선택</h2>
+            <div className="space-y-2">
+              {filteredTheaters.map((theater: Theater) => (
+                <div
+                  key={theater.id}
+                  className={`p-3 rounded-lg border cursor-pointer transition-all ${selectedTheater === theater.id
+                      ? "border-blue-500 ring-2 ring-blue-500/50"
+                      : "border-gray-200 hover:border-gray-300"
+                    }`}
+                  onClick={() => handleTheaterSelect(theater.id)}
                 >
-                  {region.name}
-                </button>
+                  <div className="flex items-center gap-3">
+                    <div className="relative w-[60px] h-[40px] bg-gray-200 rounded overflow-hidden">
+                      <Image
+                        src={theaterImages[theater.id] || "/placeholder.svg"}
+                        alt={theater.name}
+                        width={60}
+                        height={40}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center">
+                        <h3 className="font-medium">{theater.name}</h3>
+                      </div>
+                      <div className="flex items-center text-xs text-gray-500 mt-0.5">
+                        <MapPin className="h-3 w-3 mr-1" />
+                        <span>{theaterAddresses[theater.id as keyof typeof theaterAddresses]}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               ))}
             </div>
           </div>
+        )}
+      </div>
 
-          {theaterStep > 0 && (
-            <div>
-              <h2 className="text-xl font-semibold mb-3">극장 선택</h2>
-              <div className="space-y-2">
-                {filteredTheaters.map((theater: Theater) => (
-                  <div
-                    key={theater.id}
-                    className={`p-3 rounded-lg border cursor-pointer transition-all ${
-                      selectedTheater === theater.id
-                        ? "border-blue-500 ring-2 ring-blue-500/50"
-                        : "border-gray-200 hover:border-gray-300"
-                    }`}
-                    onClick={() => handleTheaterSelect(theater.id)}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="relative w-[60px] h-[40px] bg-gray-200 rounded overflow-hidden">
-                        <Image
-                          src={theaterImages[theater.id] || "/placeholder.svg"}
-                          alt={theater.name}
-                          width={60}
-                          height={40}
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                      <div className="flex-1">
-                        <div className="flex items-center">
-                          <h3 className="font-medium">{theater.name}</h3>
-                        </div>
-                        <div className="flex items-center text-xs text-gray-500 mt-0.5">
-                          <MapPin className="h-3 w-3 mr-1" />
-                          <span>{theaterAddresses[theater.id as keyof typeof theaterAddresses]}</span>
-                        </div>
+      {/* Right column: Movie selection and showtimes */}
+      <div className="md:col-span-2">
+        {theaterStep > 1 ? (
+          <>
+            {/* Right column: Movie selection and showtimes */}
+            <div className="md:col-span-2" ref={movieListRef}>
+              {movieList ? (
+                <>
+                  <div className="flex justify-between items-center mb-4">
+                    <h2 className="text-xl font-semibold">{selectedTheaterInfo?.name || "극장"} 상영 영화</h2>
+
+                    <div className="relative">
+                      <select
+                        title="1"
+                        value={selectedDate}
+                        onChange={(e) => setSelectedDate(e.target.value)}
+                        className="appearance-none bg-white border border-gray-300 rounded-md py-2 pl-3 pr-10 text-sm leading-5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      >
+                        <option key={0} value={"날짜선택"}>
+                          날짜선택
+                        </option>
+                        {getWeekDates.map((date: string, i: number) => {
+                          return (
+                            <option key={i} value={date}>
+                              {date}
+                            </option>
+                          )
+                        })}
+                      </select>
+                      <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
                       </div>
                     </div>
                   </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
 
-        {/* Right column: Movie selection and showtimes */}
-        <div className="md:col-span-2">
-          {theaterStep > 1 ? (
-            <>
-              {/* Right column: Movie selection and showtimes */}
-              <div className="md:col-span-2" ref={movieListRef}>
-                {movieList ? (
-                  <>
-                    <div className="flex justify-between items-center mb-4">
-                      <h2 className="text-xl font-semibold">{selectedTheaterInfo?.name || "극장"} 상영 영화</h2>
-
-                      <div className="relative">
-                        <select
-                          title="1"
-                          value={selectedDate}
-                          onChange={(e) => setSelectedDate(e.target.value)}
-                          className="appearance-none bg-white border border-gray-300 rounded-md py-2 pl-3 pr-10 text-sm leading-5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        >
-                          <option key={0} value={"날짜선택"}>
-                            날짜선택
-                          </option>
-                          {getWeekDates.map((date: string, i: number) => {
-                            return (
-                              <option key={i} value={date}>
-                                {date}
-                              </option>
-                            )
-                          })}
-                        </select>
-                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-                          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                          </svg>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* 영화 목록을 스크롤 가능한 컨테이너로 감싸기 */}
-                    {movieList ? (
-                      <div className="h-[600px] overflow-y-auto pr-2 custom-scrollbar">
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                          {movieList.map((movie: Movie) => (
-                            <div
-                              key={movie.id}
-                              className={`rounded-lg border overflow-hidden cursor-pointer transition-all ${
-                                selectedMovie === movie.id
-                                  ? "border-blue-500 ring-2 ring-blue-500/50"
-                                  : "border-gray-200 hover:border-gray-300"
+                  {/* 영화 목록을 스크롤 가능한 컨테이너로 감싸기 */}
+                  {movieList ? (
+                    <div className="h-[600px] overflow-y-auto pr-2 custom-scrollbar">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {movieList.map((movie: Movie) => (
+                          <div
+                            key={movie.id}
+                            className={`rounded-lg border overflow-hidden cursor-pointer transition-all ${selectedMovie === movie.id
+                                ? "border-blue-500 ring-2 ring-blue-500/50"
+                                : "border-gray-200 hover:border-gray-300"
                               }`}
-                              onClick={() => handleMovieSelect(movie.id)}
-                            >
-                              <div className="relative">
-                                <img
-                                  src={movie.posterImage || "/placeholder.svg"}
-                                  alt={"/error.png"}
-                                  width={200}
-                                  height={300}
-                                  className="w-full h-[250px] object-cover"
-                                  onError={(e) => {
-                                    ;(e.target as HTMLImageElement).src = "/placeholder.svg"
-                                  }}
-                                />
+                            onClick={() => handleMovieSelect(movie.id)}
+                          >
+                            <div className="relative">
+                              <img
+                                src={movie.posterImage || "/placeholder.svg"}
+                                alt={"/error.png"}
+                                width={200}
+                                height={300}
+                                className="w-full h-[250px] object-cover"
+                                onError={(e) => {
+                                  ; (e.target as HTMLImageElement).src = "/placeholder.svg"
+                                }}
+                              />
+                            </div>
+                            <div className="p-3">
+                              <h3 className="font-bold text-lg truncate" title={movie.title}>
+                                {movie.title}
+                              </h3>
+                              <p className="text-sm text-gray-500">{movie.director}</p>
+                              <div className="flex items-center mt-2 text-sm">
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  className="h-4 w-4 mr-1 text-yellow-500 fill-yellow-500"
+                                  viewBox="0 0 20 20"
+                                  fill="currentColor"
+                                >
+                                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00.364-.118L2.98 8.72c-.783-.57-.38-1.81.588-.181h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                </svg>
+                                {movie.releaseDate}
                               </div>
-                              <div className="p-3">
-                                <h3 className="font-bold text-lg truncate" title={movie.title}>
-                                  {movie.title}
-                                </h3>
-                                <p className="text-sm text-gray-500">{movie.director}</p>
-                                <div className="flex items-center mt-2 text-sm">
-                                  <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    className="h-4 w-4 mr-1 text-yellow-500 fill-yellow-500"
-                                    viewBox="0 0 20 20"
-                                    fill="currentColor"
-                                  >
-                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00.364-.118L2.98 8.72c-.783-.57-.38-1.81.588-.181h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                                  </svg>
-                                  {movie.releaseDate}
-                                </div>
-                                <div className="flex justify-between mt-2 text-sm text-gray-500">
-                                  <span className="truncate" title={movie.genres}>
-                                    {movie.genres}
-                                  </span>
-                                  <div className="flex items-center">
-                                    <Clock className="h-3 w-3 mr-1" />
-                                    {Math.floor(Number(movie.runtime) / 60)}시간 {Number(movie.runtime) % 60}분
-                                  </div>
+                              <div className="flex justify-between mt-2 text-sm text-gray-500">
+                                <span className="truncate" title={movie.genres}>
+                                  {movie.genres}
+                                </span>
+                                <div className="flex items-center">
+                                  <Clock className="h-3 w-3 mr-1" />
+                                  {Math.floor(Number(movie.runtime) / 60)}시간 {Number(movie.runtime) % 60}분
                                 </div>
                               </div>
                             </div>
-                          ))}
-                        </div>
-                      </div>
-                    ) : null}
-
-                    {selectedMovie && selectedDate !== "날짜선택" && (
-                      <div className="py-16" ref={showtimeRef}>
-                        <h3 className="text-lg font-semibold mb-3">상영 시간</h3>
-                        <div className="flex flex-wrap gap-2">
-                          {movieRunningDetail !== undefined && movieRunningDetail.screeningIds ? (
-                            movieRunningDetail.screeningIds.length > 0 ? (
-                              movieRunningDetail.screeningIds.map((screening_id: number, i: number) => (
-                                <button
-                                  key={screening_id}
-                                  className={`flex flex-col items-center px-4 py-2 rounded-md border text-sm font-medium transition-colors ${
-                                    selectedScreen === screening_id
-                                      ? "bg-blue-500 text-white border-blue-500"
-                                      : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
-                                  }`}
-                                  onClick={() => handleScreenSelect(screening_id)}
-                                >
-                                  <span className="font-bold">{movieRunningDetail.startTimes[i]}</span>
-                                  <span className="text-xs">{finishTimes[i]}</span>
-                                </button>
-                              ))
-                            ) : (
-                              <div>선택한 날짜에 상영 일정이 없습니다.</div>
-                            )
-                          ) : (
-                            <div>해당 영화에 대한 상영정보가 없습니다.</div>
-                          )}
-                        </div>
-                        {selectedScreen !== -1 && (
-                          <div className="mt-6 flex justify-end" ref={seatButtonRef}>
-                            <button
-                              className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
-                              onClick={() => handleCinema()}
-                            >
-                              좌석 선택하기
-                            </button>
                           </div>
+                        ))}
+                      </div>
+                    </div>
+                  ) : null}
+
+                  {selectedMovie && selectedDate !== "날짜선택" && (
+                    <div className="py-16" ref={showtimeRef}>
+                      <h3 className="text-lg font-semibold mb-3">상영 시간</h3>
+                      <div className="flex flex-wrap gap-2">
+                        {movieRunningDetail !== undefined && movieRunningDetail.screeningIds ? (
+                          movieRunningDetail.screeningIds.length > 0 ? (
+                            movieRunningDetail.screeningIds.map((screening_id: number, i: number) => (
+                              <button
+                                key={screening_id}
+                                className={`flex flex-col items-center px-4 py-2 rounded-md border text-sm font-medium transition-colors ${selectedScreen === screening_id
+                                    ? "bg-blue-500 text-white border-blue-500"
+                                    : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+                                  }`}
+                                onClick={() => handleScreenSelect(screening_id)}
+                              >
+                                <span className="font-bold">{movieRunningDetail.startTimes[i]}</span>
+                                <span className="text-xs">{finishTimes[i]}</span>
+                              </button>
+                            ))
+                          ) : (
+                            <div>선택한 날짜에 상영 일정이 없습니다.</div>
+                          )
+                        ) : (
+                          <div>해당 영화에 대한 상영정보가 없습니다.</div>
                         )}
                       </div>
-                    )}
+                      {selectedScreen !== -1 && (
+                        <div className="mt-6 flex justify-end" ref={seatButtonRef}>
+                          <button
+                            className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
+                            onClick={() => handleCinema()}
+                          >
+                            좌석 선택하기
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  )}
 
-                    {selectedMovie && selectedDate === "날짜선택" && (
-                      <div className="py-8 text-center bg-gray-50 rounded-lg border border-gray-200 mt-4">
-                        <p className="text-gray-600">상영 시간을 확인하려면 날짜를 선택해주세요.</p>
-                      </div>
-                    )}
-                  </>
-                ) : (
-                  <div className="flex items-center justify-center h-full min-h-[300px] border rounded-lg bg-gray-50">
-                    <p className="text-gray-500">지역과 극장을 선택해주세요</p>
-                  </div>
-                )}
-              </div>
-            </>
-          ) : (
-            <div className="flex items-center justify-center h-full min-h-[300px] border rounded-lg bg-gray-50">
-              <p className="text-gray-500">지역과 극장을 선택해주세요</p>
+                  {selectedMovie && selectedDate === "날짜선택" && (
+                    <div className="py-8 text-center bg-gray-50 rounded-lg border border-gray-200 mt-4">
+                      <p className="text-gray-600">상영 시간을 확인하려면 날짜를 선택해주세요.</p>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <div className="flex items-center justify-center h-full min-h-[300px] border rounded-lg bg-gray-50">
+                  <p className="text-gray-500">지역과 극장을 선택해주세요</p>
+                </div>
+              )}
             </div>
-          )}
-        </div>
+          </>
+        ) : (
+          <div className="flex items-center justify-center h-full min-h-[300px] border rounded-lg bg-gray-50">
+            <p className="text-gray-500">지역과 극장을 선택해주세요</p>
+          </div>
+        )}
       </div>
     </div>
   )
