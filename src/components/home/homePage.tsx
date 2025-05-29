@@ -25,14 +25,10 @@ useEffect(() => {
           localStorage.setItem("user", JSON.stringify(user));
           router.replace("/");
         })
-        .catch(() => {
-          // 최초 실패 시 1회만 500ms 후 재시도
-          if (!retry) {
-            setTimeout(() => tryLogin(true), 500);
-          } else {
-            window.location.reload();
-          }
-        });
+      .finally(() => {
+        // me API 호출이 끝나면 무조건 새로고침
+        window.location.reload();
+      });
     };
     tryLogin();
   }
