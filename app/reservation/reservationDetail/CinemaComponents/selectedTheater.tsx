@@ -93,6 +93,7 @@ const SelectedTheater: React.FC<SelectedTheaterProps> = ({
 
       try {
         const res = await fetch(`https://hs-cinemagix.duckdns.org/api/v1/detail/retrieve/myTheater?user_id=${userId}`, {
+          method: "POST",
           credentials: "include",
         });
         const data = await res.json();
