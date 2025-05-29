@@ -68,9 +68,7 @@ export const getUserProfile = (): UserData | null => {
  */
 export const logout = (): void => {
   // 모든 스토리지에서 제거
-  localStorage.removeItem("token")
   localStorage.removeItem("user")
-  sessionStorage.removeItem("token")
   sessionStorage.removeItem("user")
 }
 
@@ -130,7 +128,7 @@ export const updateUserProfile = async (
     })
 
     const response = await axios.post("/api/user/update", requestData, {
-        withCredentials: true,
+      withCredentials: true, // 쿠키를 포함하기 위해 필요
     })
 
     console.log("API 응답:", response.data)
@@ -189,7 +187,7 @@ export const deleteUserAccount = async (password: string): Promise<{ success: bo
     }
 
     const response = await axios.post("/api/user/deleteAccount", requestData, {
-        withCredentials: true,
+      withCredentials: true, // 쿠키를 포함하기 위해 필요
     })
 
     console.log("API 응답:", response.data)
