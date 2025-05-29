@@ -1,6 +1,8 @@
 import { apiService } from "../common/apiService"
 import React from "react"
 
+
+const [errorMsg, setErrorMsg] = useState('');
 /**
  * 로그인 요청을 처리하는 함수
  * @param email 사용자 이메일
