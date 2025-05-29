@@ -211,7 +211,10 @@
 
 .movie-grid,
 .movie-grid-loading {
-  min-width: 400px;
+  min-height: 520px; /* 카드 2줄 이상 나올 정도로 충분히 */
+  min-width: 320px;
+  width: 100%;
+  transition: min-height 0.2s;
 }
 
 .movie-card {
