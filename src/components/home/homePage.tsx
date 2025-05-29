@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { HomeContent } from "./homeUI";
+import { Suspense } from "react";
 
 function SocialAutoLogin() {
   const router = useRouter();
@@ -35,7 +36,9 @@ function SocialAutoLogin() {
 export default function HomePage() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-gray-50">
-      <SocialAutoLogin />
+      <Suspense fallback={null}>
+        <SocialAutoLogin />
+      </Suspense>
       <HomeContent />
     </div>
   );
