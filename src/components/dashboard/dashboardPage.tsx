@@ -27,12 +27,16 @@ export default function DashboardPage() {
   useEffect(() => {
     const checkAuth = () => {
       try {
-        // 쿠키에서 토큰 가져오기
+        // 여러 소스에서 토큰 확인
+        const localToken = localStorage.getItem("token")
+        const sessionToken = sessionStorage.getItem("token")
         const cookieToken = getCookie("auth_token")
 
-        const token = cookieToken
+        const token = localToken || sessionToken || cookieToken
 
         console.log("대시보드 - 토큰 확인:", {
+          localToken: !!localToken,
+          sessionToken: !!sessionToken,
           cookieToken: !!cookieToken,
         })
 
@@ -40,6 +44,13 @@ export default function DashboardPage() {
           console.error("토큰이 없어 로그인 페이지로 이동합니다.")
           router.push("/login")
           return
+        }
+
+        // 토큰이 있으면 다시 저장 (다른 스토리지에도 복제)
+        if (token) {
+          if (!localToken) localStorage.setItem("token", token)
+          if (!sessionToken) sessionStorage.setItem("token", token)
+          if (!cookieToken) document.cookie = `auth_token=${token}; path=/; max-age=86400`
         }
 
         // 사용자 정보 확인
