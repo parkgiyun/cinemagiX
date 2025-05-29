@@ -63,6 +63,7 @@ export default function DashboardPage() {
           setLoading(false)
         } else {
           // 사용자 정보가 없으면 로그인 페이지로 이동
+          alert("로그인 후 이용 가능합니다.")
           router.push("/login")
         }
       } catch (error) {
